@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('suplemen', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');
+            $table->text('deskripsi')->nullable();
+            $table->text('manfaat')->nullable();
+            $table->string('nomor_registrasi')->nullable();
+            $table->string('gambar')->nullable();
             $table->timestamps();
         });
     }

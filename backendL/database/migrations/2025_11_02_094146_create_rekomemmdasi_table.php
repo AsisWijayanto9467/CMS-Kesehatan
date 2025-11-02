@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('rekomendasi', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('penyakit_id')->constrained('penyakit')->onDelete('cascade');
+            $table->foreignId('obat_id')->constrained('obat')->onDelete('cascade');
+            $table->foreignId('suplemen_id')->constrained('suplemen')->onDelete('cascade');
             $table->timestamps();
         });
     }

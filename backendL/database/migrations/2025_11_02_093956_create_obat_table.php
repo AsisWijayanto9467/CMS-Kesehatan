@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('obat', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');
+            $table->foreignId('kategori_id')->nullable()->constrained('kategori_obat')->nullOnDelete();
+            $table->enum('jenis_obat', ['bebas', 'bebas terbatas', 'keras'])->default('bebas');
+            $table->text('deskripsi')->nullable();
+            $table->text('efek_samping')->nullable();
+            $table->string('tempat_produksi')->nullable();
+            $table->string('nomor_registrasi')->nullable();
+            $table->string('gambar')->nullable();
             $table->timestamps();
         });
     }
