@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Suplemen;
 use Illuminate\Http\Request;
 
 class SuplemenController extends Controller
@@ -12,7 +13,8 @@ class SuplemenController extends Controller
      */
     public function index()
     {
-        //
+        $suplemens = Suplemen::with(['kategori', 'dosis'])->get();
+        return response()->json($suplemens, 200);
     }
 
     /**
@@ -20,7 +22,46 @@ class SuplemenController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kategori_id' => 'nullable|exists:kategori_suplemen, id',
+            'deskripsi' => 'nullable|string',
+            'manfaat' => 'nullable|string',
+            'nomor_registrasi' => 'nullable|string|max:255',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+
+            // Dosis
+            'dosis' => 'required|array',
+            'dosis.*.kategori_usia' => 'required|string|max:255',
+            'dosis.*.dosis' => 'required|string|max:255',
+        ]);
+
+        $gambarPath = null;
+        if($request->hasFile('gambar')) {
+            $gambarPath = $request->file('gambar')->store('suplemen', 'public');
+        }
+
+        $suplemen = Suplemen::create([
+            'nama' => $request->nama,
+            'kategori_id' => $request->kategori_id,
+            'deskripsi' => $request->deskripsi,
+            'manfaat' => $request->manfaat,
+            'nomor_registrasi' => $request->nomor_registrasi,
+            'gambar' => $gambarPath,
+        ]);
+
+        foreach ($request->dosis as $d) {
+            $suplemen->dosis()->create([
+                'kategori_usia' => $d['kategori_usia'],
+                'dosis' => $d['dosis'],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Suplemen berhasil ditambahkan',
+            'data' => $suplemen->load('kategori','dosis'),
+        ]);
     }
 
     /**
@@ -28,7 +69,8 @@ class SuplemenController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $suplemen = Suplemen::with(['kategori', 'dosis'])->findOrFail($id);
+        return response()->json($suplemen, 200);
     }
 
     /**
@@ -36,7 +78,47 @@ class SuplemenController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $suplemen = Suplemen::findOrFail($id);
+
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kategori_id' => 'nullable|exists:kategori_suplemen, id',
+            'deskripsi' => 'nullable|string',
+            'manfaat' => 'nullable|string',
+            'nomor_registrasi' => 'nullable|string|max:255',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+
+            // Dosis
+            'dosis' => 'required|array',
+            'dosis.*.kategori_usia' => 'required|string|max:255',
+            'dosis.*.dosis' => 'required|string|max:255',
+        ]);
+
+        if ($request->hasFile('gambar')) {
+            if ($suplemen->gambar && file_exists(storage_path('app/public/' . $suplemen->gambar))) {
+                unlink(storage_path('app/public/' . $suplemen->gambar));
+            }
+            $suplemen->gambar = $request->file('gambar')->store('suplemen', 'public');
+        }
+
+        $suplemen->update($request->except('gambar', 'dosis'));
+
+        if($request->has('dosis')) {
+            $suplemen->dosis()->delete();
+
+            foreach($request->dosis as $d) {
+                $suplemen->dosis()->create([
+                    'kategori_usia' => $d['kategori_usia'],
+                    'dosis' => $d['dosis']
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => "Suplemen berhasil diupdate",
+            'data' => $suplemen->load('kategori', 'dosis')
+        ]);
     }
 
     /**
@@ -44,6 +126,16 @@ class SuplemenController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $suplemen = Suplemen::findOrFail($id);
+
+        if($suplemen->gambar && file_exists(storage_path('app/public/' . $suplemen->gambar))) {
+            unlink(storage_path('app/public/' . $suplemen->gambar));
+        }
+
+        $suplemen->delete();
+
+        return response()->json([
+            'message' => "Suplemen berhasil Dihapus",
+        ], 200);
     }
 }

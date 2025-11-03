@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\KategoriObat;
+use App\Models\KategoriSuplemen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class KategoriObatController extends Controller
+class KategoriSuplemenController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+   
     public function index()
     {
-        $kategori = KategoriObat::all();
+        $kategori = KategoriSuplemen::all();
         return response()->json([
             'success' => true,
             'message' => 'Daftar Kategori Obat',
@@ -40,7 +41,7 @@ class KategoriObatController extends Controller
             ], 422);
         }
 
-        $kategori = KategoriObat::create([
+        $kategori = KategoriSuplemen::create([
             'nama' => $request->nama,
             'keterangan' => $request->keterangan,
         ]);
@@ -57,7 +58,7 @@ class KategoriObatController extends Controller
      */
     public function show(string $id)
     {
-        $kategori = KategoriObat::find($id);
+        $kategori = KategoriSuplemen::find($id);
 
         if(!$kategori) {
             return response()->json([
@@ -77,7 +78,7 @@ class KategoriObatController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $kategori = KategoriObat::find($id);
+        $kategori = KategoriSuplemen::find($id);
 
         if(!$kategori) {
             return response()->json([
@@ -116,7 +117,7 @@ class KategoriObatController extends Controller
      */
     public function destroy(string $id)
     {
-        $kategori = KategoriObat::find($id);
+        $kategori = KategoriSuplemen::find($id);
 
         if(!$kategori) {
             return response()->json([

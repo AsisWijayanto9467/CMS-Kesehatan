@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rekomendasi;
 use Illuminate\Http\Request;
 
 class RekomendasiController extends Controller
@@ -12,7 +13,12 @@ class RekomendasiController extends Controller
      */
     public function index()
     {
-        //
+        $rekomendasi = Rekomendasi::with(['penyakit', 'obat', 'suplemen'])->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rekomendasi
+        ], 200);
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Obat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ObatController extends Controller
 {
@@ -32,7 +33,7 @@ class ObatController extends Controller
             'nomor_registrasi' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
-             // dosis
+            // dosis
             'dosis' => 'required|array',
             'dosis.*.kategori_usia' => 'required|string|max:255',
             'dosis.*.dosis' => 'required|string|max:255',
@@ -64,7 +65,7 @@ class ObatController extends Controller
 
         return response()->json([
             'message' => 'Obat berhasil ditambahkan',
-            'data' => $obat
+            'data' => $obat->load('kategori', 'dosis')
         ], 201);
     }
 
@@ -124,7 +125,7 @@ class ObatController extends Controller
 
         return response()->json([
             'message' => 'Obat berhasil Diupdate',
-            'data' => $obat
+            'data' => $obat->load('kategori', 'dosis')
         ], 200);
     }
 
@@ -134,6 +135,9 @@ class ObatController extends Controller
     public function destroy(string $id)
     {
         $obat = Obat::findOrFail($id);
+        if ($obat->gambar) {
+            Storage::disk('public')->delete($obat->gambar);
+        }
         $obat->delete();
 
         return response()->json([

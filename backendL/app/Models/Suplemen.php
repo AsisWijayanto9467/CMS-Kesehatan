@@ -11,6 +11,7 @@ class Suplemen extends Model
     protected $table = 'suplemen';
     protected $fillable = [
         'nama',
+        'suplemen',
         'deskripsi',
         'manfaat',
         'dosis',
@@ -20,6 +21,10 @@ class Suplemen extends Model
 
     public function dosis() {
         return $this->hasMany(DosisSuplemen::class, 'suplemen_id');
+    }
+
+    public function kategori() {
+        return $this->belongsTo(KategoriSuplemen::class, 'kategori_id');
     }
 
     public function penyakit() {
