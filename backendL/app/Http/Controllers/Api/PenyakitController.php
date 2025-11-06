@@ -13,7 +13,7 @@ class PenyakitController extends Controller
      */
     public function index()
     {
-        $penyakit = Penyakit::with(['obat', 'suplemen'])->get();
+        $penyakit = Penyakit::with(['kategori','obat', 'suplemen'])->get();
         return response()->json([
             'success' => true,
             'data' => $penyakit
@@ -27,10 +27,20 @@ class PenyakitController extends Controller
     {
         $validateData = $request->validate([
             'nama' => 'required|string|max:255',
+            'kategori_id' => 'nullable|exists:kategori_penyakit,id',
             'gejala' => 'nullable|string',
             'penyebab' => 'nullable|string',
             'keterangan' => 'nullable|string',
+            'diagnosis' => 'nullable|string',
+            'pencegahan' => 'nullable|string',
+            'tingkat_keparahan' => 'nullable|in:Ringan,Sedang,Berat',
+            'jenis_penularan' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+            // Rekomendasi
+            'rekomendasi' => 'nullable|array',
+            'rekomendasi.*.obat_id' => 'nullable|exists:obat,id',
+            'rekomendasi.*.suplemen_id' => 'nullable|exists:suplemen,id',
         ]);
 
         if($request->hasFile('gambar')) {
@@ -39,10 +49,16 @@ class PenyakitController extends Controller
 
         $penyakit = Penyakit::create($validateData);
 
+        if ($request->has('rekomendasi')) {
+            foreach ($request->rekomendasi as $rec) {
+                $penyakit->rekomendasi()->create($rec);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Data Penyakit Berhasil Ditambahkan',
-            'data' => $penyakit
+            'data' => $penyakit->load(['rekomendasi.obat', 'rekomendasi.suplemen'])
         ], 200);
     }
 
@@ -67,10 +83,20 @@ class PenyakitController extends Controller
 
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
+            'kategori_id' => 'nullable|exists:kategori_penyakit,id',
             'gejala' => 'nullable|string',
             'penyebab' => 'nullable|string',
             'keterangan' => 'nullable|string',
+            'diagnosis' => 'nullable|string',
+            'pencegahan' => 'nullable|string',
+            'tingkat_keparahan' => 'nullable|in:Ringan,Sedang,Berat',
+            'jenis_penularan' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+            // Rekomendasi
+            'rekomendasi' => 'nullable|array',
+            'rekomendasi.*.obat_id' => 'nullable|exists:obat,id',
+            'rekomendasi.*.suplemen_id' => 'nullable|exists:suplemen,id',
         ]);
 
         if($request->hasFile('gambar')) {
@@ -82,10 +108,18 @@ class PenyakitController extends Controller
 
         $penyakit->update($validatedData);
 
+        $penyakit->rekomendasi()->delete();
+
+        if ($request->has('rekomendasi')) {
+            foreach ($request->rekomendasi as $rec) {
+                $penyakit->rekomendasi()->create($rec);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Data Penyakit Berhasil DiPerbarui',
-            'data' => $penyakit
+            'data' => $penyakit->load(['rekomendasi.obat', 'rekomendasi.suplemen'])
         ], 200);
     }
 

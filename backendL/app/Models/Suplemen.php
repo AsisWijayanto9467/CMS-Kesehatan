@@ -11,12 +11,20 @@ class Suplemen extends Model
     protected $table = 'suplemen';
     protected $fillable = [
         'nama',
+        'kategori_id',
         'suplemen',
         'deskripsi',
         'manfaat',
         'dosis',
         'nomor_registrasi',
+        'nama_produsen_importir',
+        'alamat_produsen_importir',
         'gambar',
+        'status_halal',
+        'cara_penyimpanan',
+        'aturan_penggunaan',
+        'komposisi',
+        'peringatan',
     ];
 
     public function dosis() {

@@ -25,12 +25,18 @@ class ObatController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            'kategori_id' => 'nullable|exists:kategori_obat, id',
-            'jenis_obat' => 'required|in:bebas, bebas terbatas, keras',
+            'kategori_id' => 'nullable|exists:kategori_obat,id',
+            'jenis_obat' => 'required|in:bebas, bebas terbatas,keras',
             'deskripsi' => 'nullable|string',
             'efek_samping' => 'nullable|string',
-            'tempat_produksi' => 'nullable|string',
+            'nama_produsen_importir' => 'nullable|string|max:255',
+            'alamat_produsen_importir' => 'nullable|string',
             'nomor_registrasi' => 'nullable|string',
+            'status_halal' => 'required|in:halal,tidak halal,tidak diketahui',
+            'cara_penyimpanan' => 'nullable|string',
+            'aturan_penggunaan' => 'nullable|string',
+            'komposisi' => 'nullable|string',
+            'peringatan' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
             // dosis
@@ -49,10 +55,15 @@ class ObatController extends Controller
             'kategori_id' => $request->kategori_id,
             'jenis_obat' => $request->jenis_obat,
             'deskripsi' => $request->deskripsi,
-            'dosis' => $request->dosis,
             'efek_samping' => $request->efek_samping,
-            'tempat_produksi' => $request->tempat_produksi,
+            'nama_produsen_importir' => $request->nama_produsen_importir,
+            'alamat_produsen_importir' => $request->alamat_produsen_importir,
             'nomor_registrasi' => $request->nomor_registrasi,
+            'status_halal' => $request->status_halal,
+            'cara_penyimpanan' => $request->cara_penyimpanan,
+            'aturan_penggunaan' => $request->aturan_penggunaan,
+            'komposisi' => $request->komposisi,
+            'peringatan' => $request->peringatan,
             'gambar' => $gambarPath,
         ]);
 
@@ -87,12 +98,18 @@ class ObatController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
-            'kategori_id' => 'nullable|exists:kategori_obat, id',
-            'jenis_obat' => 'required|in:bebas, bebas terbatas, keras',
+            'kategori_id' => 'nullable|exists:kategori_obat,id',
+            'jenis_obat' => 'required|in:bebas,bebas terbatas,keras',
             'deskripsi' => 'nullable|string',
             'efek_samping' => 'nullable|string',
-            'tempat_produksi' => 'nullable|string',
+            'nama_produsen_importir' => 'nullable|string|max:255',
+            'alamat_produsen_importir' => 'nullable|string',
             'nomor_registrasi' => 'nullable|string',
+            'status_halal' => 'required|in:halal,tidak halal,tidak diketahui',
+            'cara_penyimpanan' => 'nullable|string',
+            'aturan_penggunaan' => 'nullable|string',
+            'komposisi' => 'nullable|string',
+            'peringatan' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
             // dosis

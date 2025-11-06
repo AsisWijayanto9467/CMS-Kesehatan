@@ -24,12 +24,18 @@ class SuplemenController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            'kategori_id' => 'nullable|exists:kategori_suplemen, id',
+            'kategori_id' => 'nullable|exists:kategori_suplemen,id',
             'deskripsi' => 'nullable|string',
             'manfaat' => 'nullable|string',
             'nomor_registrasi' => 'nullable|string|max:255',
+            'nama_produsen_importir' => 'nullable|string|max:255',
+            'alamat_produsen_importir' => 'nullable|string',
+            'status_halal' => 'required|in:halal,tidak halal,tidak diketahui',
+            'cara_penyimpanan' => 'nullable|string',
+            'aturan_penggunaan' => 'nullable|string',
+            'komposisi' => 'nullable|string',
+            'peringatan' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-
 
             // Dosis
             'dosis' => 'required|array',
@@ -48,6 +54,13 @@ class SuplemenController extends Controller
             'deskripsi' => $request->deskripsi,
             'manfaat' => $request->manfaat,
             'nomor_registrasi' => $request->nomor_registrasi,
+            'nama_produsen_importir' => $request->nama_produsen_importir,
+            'alamat_produsen_importir' => $request->alamat_produsen_importir,
+            'status_halal' => $request->status_halal,
+            'cara_penyimpanan' => $request->cara_penyimpanan,
+            'aturan_penggunaan' => $request->aturan_penggunaan,
+            'komposisi' => $request->komposisi,
+            'peringatan' => $request->peringatan,
             'gambar' => $gambarPath,
         ]);
 
@@ -82,12 +95,18 @@ class SuplemenController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
-            'kategori_id' => 'nullable|exists:kategori_suplemen, id',
+            'kategori_id' => 'nullable|exists:kategori_suplemen,id',
             'deskripsi' => 'nullable|string',
             'manfaat' => 'nullable|string',
             'nomor_registrasi' => 'nullable|string|max:255',
+            'nama_produsen_importir' => 'nullable|string|max:255',
+            'alamat_produsen_importir' => 'nullable|string',
+            'status_halal' => 'required|in:halal,tidak halal,tidak diketahui',
+            'cara_penyimpanan' => 'nullable|string',
+            'aturan_penggunaan' => 'nullable|string',
+            'komposisi' => 'nullable|string',
+            'peringatan' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-
 
             // Dosis
             'dosis' => 'required|array',

@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\KategoriSuplemen;
+use App\Models\KategoriPenyakit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class KategoriSuplemenController extends Controller
+class KategoriPenyakitController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-   
     public function index()
     {
-        $kategori = KategoriSuplemen::all();
+        $kategori = KategoriPenyakit::all();
         return response()->json([
             'success' => true,
             'message' => 'Daftar Kategori Obat',
@@ -40,7 +39,7 @@ class KategoriSuplemenController extends Controller
             ], 422);
         }
 
-        $kategori = KategoriSuplemen::create([
+        $kategori = KategoriPenyakit::create([
             'nama' => $request->nama,
         ]);
 
@@ -56,7 +55,7 @@ class KategoriSuplemenController extends Controller
      */
     public function show(string $id)
     {
-        $kategori = KategoriSuplemen::find($id);
+        $kategori = KategoriPenyakit::find($id);
 
         if(!$kategori) {
             return response()->json([
@@ -76,7 +75,7 @@ class KategoriSuplemenController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $kategori = KategoriSuplemen::find($id);
+        $kategori = KategoriPenyakit::find($id);
 
         if(!$kategori) {
             return response()->json([
@@ -113,7 +112,7 @@ class KategoriSuplemenController extends Controller
      */
     public function destroy(string $id)
     {
-        $kategori = KategoriSuplemen::find($id);
+        $kategori = KategoriPenyakit::find($id);
 
         if(!$kategori) {
             return response()->json([

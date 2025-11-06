@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminLTE Clone</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS untuk animasi -->
+    <style>
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .content-transition {
+            transition: all 0.3s ease;
+        }
+        .dropdown-menu {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+        .dropdown-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #3c8dbc;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .card {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+        }
+        .card:hover {
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        }
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        
+        /* Styles for collapsed sidebar */
+        .sidebar-collapsed {
+            width: 4rem !important;
+        }
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .sidebar-badge,
+        .sidebar-collapsed .user-panel-text,
+        .sidebar-collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        .sidebar-collapsed .user-panel {
+            padding: 0.75rem 0.5rem !important;
+            justify-content: center;
+        }
+        .sidebar-collapsed .fa-angle-left {
+            display: none !important;
+        }
+        .sidebar-collapsed .submenu {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            width: 200px;
+            background-color: #1e40af;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            z-index: 60;
+            padding: 0.5rem 0;
+        }
+        .sidebar-collapsed .menu-item {
+            position: relative;
+        }
+        .sidebar-collapsed .menu-item:hover .submenu {
+            display: block !important;
+        }
+        
+        /* Styles for expanded sidebar */
+        .sidebar-expanded {
+            width: 16rem !important;
+        }
+        .sidebar-expanded .sidebar-text,
+        .sidebar-expanded .user-panel-text,
+        .sidebar-expanded .logo-text {
+            opacity: 1;
+            width: auto;
+            height: auto;
+            overflow: visible;
+            transition: all 0.3s ease;
+        }
+        
+        /* Improved toggle button positioning */
+        .toggle-container {
+            position: absolute;
+            top: 1rem;
+            right: -0.75rem;
+            z-index: 70;
+        }
+        .toggle-button {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            border: 2px solid #1e40af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-button:hover {
+            background-color: #2563eb;
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: -100%;
+                z-index: 50;
+                height: 100%;
+                overflow-y: auto;
+            }
+            #sidebar.mobile-open {
+                left: 0;
+            }
+            .mobile-overlay.show {
+                display: block;
+            }
+            .toggle-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Overlay -->
+    <div id="mobileOverlay" class="mobile-overlay" onclick="closeSidebar()"></div>
+    
+    <!-- Wrapper -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar-transition bg-blue-800 text-white w-64 flex flex-col fixed md:relative z-50 md:z-auto sidebar-expanded">
+            <!-- Toggle Button Container -->
+            <div class="toggle-container">
+                <button id="desktopSidebarToggle" class="toggle-button">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Logo -->
+            <div class="p-4 flex items-center justify-center border-b border-blue-700 relative">
+                <div class="flex items-center">
+                    <i class="fas fa-tachometer-alt text-xl mr-2"></i>
+                    <span class="text-xl font-bold logo-text">AdminLTE 3</span>
+                </div>
+                <button id="sidebarToggle" class="text-white md:hidden absolute right-4">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- User Panel -->
+            <div class="user-panel p-4 border-b border-blue-700 flex items-center">
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="ml-3 user-panel-text">
+                    <p class="font-semibold">Alexander Pierce</p>
+                    <p class="text-xs text-blue-200">Online</p>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <nav class="flex-1 overflow-y-auto py-2">
+                <ul class="space-y-1 px-2">
+                    <li class="menu-item relative">
+                        <a href="#" class="sidebar-item flex items-center p-3 rounded-md active">
+                            <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="menu-item relative">
+                        <a href="#" class="sidebar-item flex items-center p-3 rounded-md">
+                            <i class="fas fa-th w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Widgets</span>
+                            <span class="ml-auto bg-blue-600 text-xs px-2 py-1 rounded-full sidebar-text sidebar-badge">New</span>
+                        </a>
+                    </li>
+                    <li class="menu-item relative">
+                        <div class="sidebar-item flex items-center p-3 rounded-md cursor-pointer group" onclick="toggleSubmenu(this)">
+                            <i class="fas fa-chart-pie w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Charts</span>
+                            <i class="fas fa-angle-left ml-auto transition-transform duration-300 sidebar-text"></i>
+                        </div>
+                        <ul class="pl-4 mt-1 hidden submenu">
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">ChartJS</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Flot</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Inline</a></li>
+                        </ul>
+                    </li>
+                    <li class="menu-item relative">
+                        <a href="#" class="sidebar-item flex items-center p-3 rounded-md">
+                            <i class="fas fa-table w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Tables</span>
+                        </a>
+                    </li>
+                    <li class="menu-item relative">
+                        <div class="sidebar-item flex items-center p-3 rounded-md cursor-pointer group" onclick="toggleSubmenu(this)">
+                            <i class="fas fa-copy w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Layout Options</span>
+                            <i class="fas fa-angle-left ml-auto transition-transform duration-300 sidebar-text"></i>
+                        </div>
+                        <ul class="pl-4 mt-1 hidden submenu">
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Top Navigation</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Boxed</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Fixed Sidebar</a></li>
+                        </ul>
+                    </li>
+                    <li class="menu-item relative">
+                        <a href="#" class="sidebar-item flex items-center p-3 rounded-md">
+                            <i class="fas fa-calendar w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Calendar</span>
+                        </a>
+                    </li>
+                    <li class="menu-item relative">
+                        <a href="#" class="sidebar-item flex items-center p-3 rounded-md">
+                            <i class="fas fa-envelope w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Mailbox</span>
+                        </a>
+                    </li>
+                    <li class="menu-item relative">
+                        <div class="sidebar-item flex items-center p-3 rounded-md cursor-pointer group" onclick="toggleSubmenu(this)">
+                            <i class="fas fa-folder w-6 text-center"></i>
+                            <span class="ml-3 sidebar-text">Examples</span>
+                            <i class="fas fa-angle-left ml-auto transition-transform duration-300 sidebar-text"></i>
+                        </div>
+                        <ul class="pl-4 mt-1 hidden submenu">
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Invoice</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Profile</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Login</a></li>
+                            <li><a href="#" class="sidebar-item flex items-center p-2 rounded-md text-sm">Register</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div id="mainContent" class="flex-1 flex flex-col overflow-hidden md:ml-0 content-transition">
+            <!-- Header -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between p-4">
+                    <!-- Left: Page Title & Mobile Menu Toggle -->
+                    <div class="flex items-center">
+                        <button id="mobileMenuToggle" class="mr-4 text-gray-600 md:hidden">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
+                            <p class="text-sm text-gray-500">Control panel</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Header Actions -->
+                    <div class="flex items-center space-x-2 md:space-x-4">
+                        <!-- Search - Hidden on mobile -->
+                        <div class="relative hidden md:block">
+                            <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        
+                        <!-- Mobile Search Toggle -->
+                        <button id="mobileSearchToggle" class="p-2 rounded-full hover:bg-gray-100 md:hidden">
+                            <i class="fas fa-search text-gray-600"></i>
+                        </button>
+                        
+                        <!-- Mobile Search Input -->
+                        <div id="mobileSearch" class="absolute top-16 left-0 right-0 bg-white p-4 shadow-md hidden md:hidden">
+                            <div class="relative">
+                                <input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Messages -->
+                        <div class="relative">
+                            <button class="p-2 rounded-full hover:bg-gray-100">
+                                <i class="fas fa-envelope text-gray-600"></i>
+                                <span class="notification-badge bg-red-500 text-white">4</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button class="p-2 rounded-full hover:bg-gray-100">
+                                <i class="fas fa-bell text-gray-600"></i>
+                                <span class="notification-badge bg-yellow-500 text-white">10</span>
+                            </button>
+                        </div>
+                        
+                        <!-- User Menu -->
+                        <div class="relative">
+                            <button id="userMenuButton" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-sm"></i>
+                                </div>
+                                <span class="text-gray-700 hidden md:inline">Alexander Pierce</span>
+                                <i class="fas fa-caret-down text-gray-500 hidden md:inline"></i>
+                            </button>
+                            <div id="userMenu" class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-user mr-2"></i>Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-cog mr-2"></i>Settings</a>
+                                <div class="border-t border-gray-100"></div>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-sign-out-alt mr-2"></i>Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <main class="flex-1 overflow-y-auto p-4 md:p-6">
+                <!-- Info Boxes -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+                    <!-- Info Box 1 -->
+                    <div class="card bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-semibold">Sales</h3>
+                                <p class="text-2xl md:text-3xl font-bold mt-2">$12,430</p>
+                            </div>
+                            <div class="bg-blue-400 bg-opacity-30 p-2 md:p-3 rounded-full">
+                                <i class="fas fa-shopping-cart text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center">
+                            <i class="fas fa-arrow-up text-green-300 mr-1"></i>
+                            <span class="text-xs md:text-sm">12% increase from last month</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Box 2 -->
+                    <div class="card bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-semibold">New Users</h3>
+                                <p class="text-2xl md:text-3xl font-bold mt-2">2,340</p>
+                            </div>
+                            <div class="bg-green-400 bg-opacity-30 p-2 md:p-3 rounded-full">
+                                <i class="fas fa-users text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center">
+                            <i class="fas fa-arrow-up text-green-300 mr-1"></i>
+                            <span class="text-xs md:text-sm">3% increase from last week</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Box 3 -->
+                    <div class="card bg-gradient-to-r from-yellow-500 to-yellow-700 text-white rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-semibold">Orders</h3>
+                                <p class="text-2xl md:text-3xl font-bold mt-2">9,302</p>
+                            </div>
+                            <div class="bg-yellow-400 bg-opacity-30 p-2 md:p-3 rounded-full">
+                                <i class="fas fa-clipboard-list text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center">
+                            <i class="fas fa-arrow-down text-red-300 mr-1"></i>
+                            <span class="text-xs md:text-sm">30% decrease from yesterday</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Box 4 -->
+                    <div class="card bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-semibold">Revenue</h3>
+                                <p class="text-2xl md:text-3xl font-bold mt-2">$93,240</p>
+                            </div>
+                            <div class="bg-red-400 bg-opacity-30 p-2 md:p-3 rounded-full">
+                                <i class="fas fa-dollar-sign text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center">
+                            <i class="fas fa-arrow-up text-green-300 mr-1"></i>
+                            <span class="text-xs md:text-sm">20% increase from last quarter</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts and Tables -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                    <!-- Chart -->
+                    <div class="card bg-white rounded-lg shadow p-4">
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-2 md:mb-0">Sales Overview</h2>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">Day</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Week</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Month</button>
+                            </div>
+                        </div>
+                        <div class="h-48 md:h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <p class="text-gray-500 text-center p-4">Chart Area - Would display sales data here</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="card bg-white rounded-lg shadow p-4">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
+                                    <i class="fas fa-user-plus text-sm md:text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">New user registered</p>
+                                    <p class="text-xs text-gray-500">5 mins ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 flex-shrink-0">
+                                    <i class="fas fa-shopping-cart text-sm md:text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">New order placed</p>
+                                    <p class="text-xs text-gray-500">15 mins ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 mr-3 flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle text-sm md:text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">Server load high</p>
+                                    <p class="text-xs text-gray-500">30 mins ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3 flex-shrink-0">
+                                    <i class="fas fa-bug text-sm md:text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">Bug fixed</p>
+                                    <p class="text-xs text-gray-500">21 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Content for Tablet/Desktop -->
+                <div class="mt-6 hidden md:block">
+                    <div class="card bg-white rounded-lg shadow p-4">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg flex flex-col items-center justify-center transition-colors">
+                                <i class="fas fa-plus text-xl mb-2"></i>
+                                <span>Add New</span>
+                            </button>
+                            <button class="bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg flex flex-col items-center justify-center transition-colors">
+                                <i class="fas fa-upload text-xl mb-2"></i>
+                                <span>Upload</span>
+                            </button>
+                            <button class="bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-lg flex flex-col items-center justify-center transition-colors">
+                                <i class="fas fa-download text-xl mb-2"></i>
+                                <span>Download</span>
+                            </button>
+                            <button class="bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg flex flex-col items-center justify-center transition-colors">
+                                <i class="fas fa-cog text-xl mb-2"></i>
+                                <span>Settings</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Toggle sidebar for desktop
+        document.getElementById('desktopSidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebar.classList.contains('sidebar-expanded')) {
+                // Collapse sidebar
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-collapsed');
+                // Update toggle button icon
+                this.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            } else {
+                // Expand sidebar
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.classList.add('sidebar-expanded');
+                // Update toggle button icon
+                this.innerHTML = '<i class="fas fa-bars"></i>';
+            }
+        });
+
+        // Toggle sidebar for mobile
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.add('mobile-open');
+            overlay.classList.add('show');
+        });
+
+        // Close sidebar for mobile
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('show');
+        }
+
+        // Toggle sidebar for mobile close button
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            closeSidebar();
+        });
+
+        // Toggle mobile search
+        document.getElementById('mobileSearchToggle').addEventListener('click', function() {
+            const mobileSearch = document.getElementById('mobileSearch');
+            mobileSearch.classList.toggle('hidden');
+        });
+
+        // Toggle dropdown menus
+        document.getElementById('userMenuButton').addEventListener('click', function() {
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (!userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                userMenu.classList.remove('show');
+            }
+        });
+
+        // Toggle submenus in sidebar
+        function toggleSubmenu(element) {
+            const sidebar = document.getElementById('sidebar');
+            const submenu = element.nextElementSibling;
+            const icon = element.querySelector('.fa-angle-left');
+            
+            // If sidebar is collapsed, show submenu as flyout
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                // Close all other submenus first
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== submenu) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Toggle current submenu
+                submenu.classList.toggle('hidden');
+            } else {
+                // Normal behavior when sidebar is expanded
+                submenu.classList.toggle('hidden');
+                icon.classList.toggle('rotate-90');
+            }
+        }
+
+        // Add hover effects to cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Close mobile search when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+            const mobileSearch = document.getElementById('mobileSearch');
+            
+            if (!mobileSearchToggle.contains(event.target) && !mobileSearch.contains(event.target)) {
+                mobileSearch.classList.add('hidden');
+            }
+        });
+
+        // Close submenus when clicking outside (for collapsed sidebar)
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                const isClickInsideSubmenu = event.target.closest('.submenu');
+                const isClickInsideMenuItem = event.target.closest('.sidebar-item');
+                
+                if (!isClickInsideSubmenu && !isClickInsideMenuItem) {
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        menu.classList.add('hidden');
+                    });
+                }
+            }
+        });
+
+        // Hover effect for menu items in collapsed sidebar
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                if (document.getElementById('sidebar').classList.contains('sidebar-collapsed')) {
+                    const submenu = this.querySelector('.submenu');
+                    if (submenu) {
+                        submenu.classList.remove('hidden');
+                    }
+                }
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                if (document.getElementById('sidebar').classList.contains('sidebar-collapsed')) {
+                    const submenu = this.querySelector('.submenu');
+                    if (submenu) {
+                        // Add a small delay to prevent flickering
+                        setTimeout(() => {
+                            if (!submenu.matches(':hover')) {
+                                submenu.classList.add('hidden');
+                            }
+                        }, 100);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

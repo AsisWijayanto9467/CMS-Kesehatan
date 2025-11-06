@@ -15,9 +15,15 @@ class Obat extends Model
         'jenis_obat',
         'deskripsi',
         'efek_samping',
-        'tempat_produksi',
+        'nama_produsen_importir',
+        'alamat_produsen_importir',
         'nomor_registrasi',
         'gambar',
+        'status_halal',
+        'cara_penyimpanan',
+        'aturan_penggunaan',
+        'komposisi',
+        'peringatan',
     ];
 
     public function dosis() {

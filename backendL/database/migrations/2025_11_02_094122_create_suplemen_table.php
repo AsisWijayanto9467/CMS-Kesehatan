@@ -18,7 +18,14 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->text('manfaat')->nullable();
             $table->string('nomor_registrasi')->nullable();
+            $table->string('nama_produsen_importir')->nullable();
+            $table->text('alamat_produsen_importir')->nullable();
             $table->string('gambar')->nullable();
+            $table->enum('status_halal', ['halal', 'tidak halal', 'tidak diketahui'])->default('tidak diketahui');
+            $table->text('cara_penyimpanan')->nullable();
+            $table->text('aturan_penggunaan')->nullable();
+            $table->text('komposisi')->nullable();
+            $table->text('peringatan')->nullable();
             $table->timestamps();
         });
     }

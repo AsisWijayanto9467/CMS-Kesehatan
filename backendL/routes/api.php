@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\KategoriObatController;
+use App\Http\Controllers\API\KategoriPenyakitController;
 use App\Http\Controllers\Api\KategoriSuplemenController;
 use App\Http\Controllers\Api\ObatController;
 use App\Http\Controllers\Api\PenyakitController;
@@ -43,6 +44,13 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/kategori-suplemen/{id}', [KategoriSuplemenController::class, 'show']);
     Route::put('/kategori-suplemen/{id}', [KategoriSuplemenController::class, 'update']);
     Route::delete('/kategori-suplemen/{id}', [KategoriSuplemenController::class, 'destroy']);
+
+    // CRUD Kategori Suplemen
+    Route::get('/kategori-penyakit', [KategoriPenyakitController::class, 'index']);
+    Route::post('/kategori-penyakit', [KategoriPenyakitController::class, 'store']);
+    Route::get('/kategori-penyakit/{id}', [KategoriPenyakitController::class, 'show']);
+    Route::put('/kategori-penyakit/{id}', [KategoriPenyakitController::class, 'update']);
+    Route::delete('/kategori-penyakit/{id}', [KategoriPenyakitController::class, 'destroy']);
 
     // CRUD Penyakit
     Route::get('/penyakit', [PenyakitController::class, 'index']);

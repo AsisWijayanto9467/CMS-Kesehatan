@@ -11,9 +11,14 @@ class Penyakit extends Model
     protected $table = 'penyakit';
     protected $fillable = [
         'nama',
+        'kategori_id',
         'gejala',
         'penyebab',
         'keterangan',
+        'diagnosis',
+        'pencegahan',
+        'tingkat_keparahan',
+        'jenis_penularan',
         'gambar',
     ];
 
@@ -21,8 +26,12 @@ class Penyakit extends Model
         return $this->belongsToMany(Obat::class, 'rekomendasi', 'penyakit_id', 'obat_id')->withTimestamps();
     }
 
+    public function kategori() {
+        return $this->belongsTo(KategoriPenyakit::class, 'kategori_id');
+    }
+
     public function suplemen() {
-        return $this->belongsToMany(Obat::class, 'rekomendasi', 'penyakit_id', 'suplemen_id')->withTimestamps();
+        return $this->belongsToMany(Suplemen::class, 'rekomendasi', 'penyakit_id', 'suplemen_id')->withTimestamps();
     }
 
     public function rekomendasi() {
