@@ -30,6 +30,7 @@ class KategoriSuplemenController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -87,6 +88,7 @@ class KategoriSuplemenController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {

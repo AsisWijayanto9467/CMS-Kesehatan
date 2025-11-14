@@ -29,7 +29,7 @@ class KategoriObatController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
-            'keterangan' => 'nullable|string'
+            'deskripsi' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -42,7 +42,7 @@ class KategoriObatController extends Controller
 
         $kategori = KategoriObat::create([
             'nama' => $request->nama,
-            'keterangan' => $request->keterangan,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([
@@ -88,7 +88,7 @@ class KategoriObatController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
-            'keterangan' => 'nullable|string'
+            'deskripsi' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -101,7 +101,7 @@ class KategoriObatController extends Controller
 
         $kategori->update([
             'nama' => $request->nama,
-            'keterangan' => $request->keterangan,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([

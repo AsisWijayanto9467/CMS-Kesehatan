@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +25,23 @@ export default function Login() {
       }
     });
   }
+
+  useEffect(() => {
+    const logoutSuccess = localStorage.getItem("logoutSuccess");
+    if(logoutSuccess) {
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil Logout",
+        text: "Anda telah keluar dari akun dengan aman.",
+        confirmButtonColor: "#3b82f6",
+        background: "#fff",
+        customClass: {
+          popup: "rounded-2xl shadow-2xl",
+        },
+      })
+      localStorage.removeItem("logoutSuccess");
+    }
+  }, []);
 
   const showSuccessAlert = () => {
     return Swal.fire({
@@ -108,8 +125,8 @@ export default function Login() {
       title: 'Demo Credentials',
       html: `
         <div class="text-left">
-          <p class="mb-2"><strong>Email:</strong> admin@example.com</p>
-          <p><strong>Password:</strong> password</p>
+          <p class="mb-2"><strong>Email:</strong> asis@example.com</p>
+          <p><strong>Password:</strong> password123</p>
         </div>
       `,
       icon: 'info',
@@ -133,14 +150,12 @@ export default function Login() {
               <i className="fas fa-tachometer-alt text-white text-2xl"></i>
             </div>
             <h1 className="text-3xl font-bold text-gray-800 logo-glow">
-              Admin<span className="text-blue-600">LTE</span>
+              Admin<span className="text-blue-600">Home</span>
             </h1>
             <p className="text-gray-600 mt-2">Sign in to your account</p>
           </div>
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
             <div className="relative group">
               <input
                 type="email"
@@ -179,7 +194,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -197,7 +211,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Demo Credentials Button */}
           <div className="mt-6 text-center">
             <button
               onClick={showDemoCredentials}

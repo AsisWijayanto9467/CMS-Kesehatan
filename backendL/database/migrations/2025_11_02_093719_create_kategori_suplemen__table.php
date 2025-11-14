@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('kategori_suplemen', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
+            $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
     }

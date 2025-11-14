@@ -10,7 +10,8 @@ class KategoriObat extends Model
     use HasFactory;
     protected $table = 'kategori_obat';
     protected $fillable = [
-        'nama', 
+        'nama',
+        'deskripsi',
     ];
 
     public function obat() {

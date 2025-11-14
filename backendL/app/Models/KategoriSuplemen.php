@@ -11,6 +11,7 @@ class KategoriSuplemen extends Model
     protected $table = 'kategori_suplemen';
     protected $fillable = [
         'nama',
+        'deskripsi',
     ];
 
     public function suplemen() {

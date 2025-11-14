@@ -29,6 +29,7 @@ class KategoriPenyakitController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -41,6 +42,7 @@ class KategoriPenyakitController extends Controller
 
         $kategori = KategoriPenyakit::create([
             'nama' => $request->nama,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([
@@ -86,6 +88,7 @@ class KategoriPenyakitController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -98,6 +101,7 @@ class KategoriPenyakitController extends Controller
 
         $kategori->update([
             'nama' => $request->nama,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([
