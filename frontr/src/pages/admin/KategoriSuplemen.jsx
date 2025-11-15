@@ -1,133 +1,183 @@
-import React, { useState, useEffect } from 'react';
-import { AdminLayout } from '../../components';
+import React, { useState, useEffect } from "react";
+import { AdminLayout } from "../../components";
+import api from "../../services/api";
+import Swal from "sweetalert2";
 
 const KategoriSuplemen = () => {
   const [kategoriList, setKategoriList] = useState([]);
   const [formData, setFormData] = useState({
-    nama_kategori: '',
-    deskripsi: ''
+    nama: "",
+    deskripsi: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Mock data untuk simulasi (nanti bisa diganti dengan API)
-  const mockData = [
-    { id: 1, nama_kategori: 'Penyakit Menular', deskripsi: 'Penyakit yang dapat menular dari satu individu ke individu lain' },
-    { id: 2, nama_kategori: 'Penyakit Tidak Menular', deskripsi: 'Penyakit yang tidak dapat menular antar individu' },
-    { id: 3, nama_kategori: 'Penyakit Kronis', deskripsi: 'Penyakit yang berlangsung dalam waktu lama' },
-  ];
-
-  // Simulasi fetch data dari API
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // Simulasi API call
-        setTimeout(() => {
-          setKategoriList(mockData);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);
+  // 🔹 Ambil Data
+  const fetchKategori = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get("/kategori-suplemen");
+      if (response.data.success) {
+        setKategoriList(response.data.data);
       }
-    };
+    } catch (error) {
+      console.error("Gagal memuat data kategori:", error.response || error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Memuat Data",
+        text: "Tidak dapat memuat kategori obat. Coba lagi nanti.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchKategori();
   }, []);
 
+  // 🔹 Input Change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
+  const [oldCategoryName, setOldCategoryName] = useState("");
+
+  // 🔹 Submit (Tambah / Edit)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      let res;
       if (editingId) {
-        // Simulasi update data
-        setKategoriList(prev => 
-          prev.map(item => 
-            item.id === editingId 
-              ? { ...item, ...formData }
-              : item
-          )
-        );
+        // Jika sedang edit
+        res = await api.put(`/kategori-suplemen/${editingId}`, formData);
+
+        if (res.data.success) {
+          await Swal.fire({
+            icon: "info", // 🔵 warna biru untuk update
+            title: "Kategori Diperbarui!",
+            html: `Kategori <b>"${oldCategoryName}"</b> berhasil diperbarui menjadi <b>"${formData.nama}"</b>`,
+            showConfirmButton: false,
+            timer: 2000,
+          });
+        }
       } else {
-        // Simulasi create data
-        const newKategori = {
-          id: Date.now(),
-          ...formData
-        };
-        setKategoriList(prev => [...prev, newKategori]);
+        // Jika tambah baru
+        res = await api.post("/kategori-suplemen", formData);
+
+        if (res.data.success) {
+          await Swal.fire({
+            icon: "success", // 🟢 warna hijau untuk tambah
+            title: "Kategori Ditambahkan!",
+            html: `Kategori <b>"${formData.nama}"</b> berhasil ditambahkan.`,
+            showConfirmButton: false,
+            timer: 2000,
+          });
+        }
       }
 
-      // Reset form
-      setFormData({
-        nama_kategori: '',
-        deskripsi: ''
-      });
+      fetchKategori();
+      setFormData({ nama: "", deskripsi: "" });
       setEditingId(null);
-      setIsLoading(false);
+      setOldCategoryName("");
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error("Gagal menyimpan kategori:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Terjadi Kesalahan!",
+        text: "Gagal menyimpan data kategori.",
+      });
+    } finally {
       setIsLoading(false);
     }
   };
 
+  // 🔹 Edit
   const handleEdit = (kategori) => {
     setFormData({
-      nama_kategori: kategori.nama_kategori,
-      deskripsi: kategori.deskripsi
+      nama: kategori.nama,
+      deskripsi: kategori.deskripsi || "",
     });
     setEditingId(kategori.id);
+    setOldCategoryName(kategori.nama); // Simpan nama lama sebelum diedit
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
-      setKategoriList(prev => prev.filter(item => item.id !== id));
+  // 🔹 Hapus
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "Yakin ingin menghapus?",
+      text: "Data kategori ini akan dihapus permanen!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await api.delete(`/kategori-suplemen/${id}`);
+        if (res.data.success) {
+          await Swal.fire({
+            icon: "success",
+            title: "Kategori Dihapus!",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          fetchKategori();
+        }
+      } catch (error) {
+        console.error("Gagal menghapus kategori:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Menghapus",
+          text: "Terjadi kesalahan saat menghapus kategori.",
+        });
+      }
     }
   };
 
+  // 🔹 Batal Edit
   const handleCancel = () => {
-    setFormData({
-      nama_kategori: '',
-      deskripsi: ''
-    });
+    setFormData({ nama: "", deskripsi: "" });
     setEditingId(null);
   };
 
   return (
     <AdminLayout>
       <div className="p-4 text-gray-800">
-        {/* Card Form Tambah/Edit Kategori */}
+        {/* Form Tambah / Edit */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">
-            {editingId ? 'Edit Kategori Penyakit' : 'Tambah Kategori Penyakit'}
+            {editingId ? "Edit Kategori Obat" : "Tambah Kategori Obat"}
           </h2>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Nama Kategori */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nama Kategori *
                 </label>
                 <input
                   type="text"
-                  name="nama_kategori"
-                  value={formData.nama_kategori}
+                  name="nama"
+                  value={formData.nama}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Masukkan nama kategori"
                   required
                 />
               </div>
-              
+
+              {/* Deskripsi */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Deskripsi
@@ -137,26 +187,27 @@ const KategoriSuplemen = () => {
                   name="deskripsi"
                   value={formData.deskripsi}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Masukkan deskripsi kategori"
                 />
               </div>
             </div>
-            
+
+            {/* Tombol Aksi */}
             <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {isLoading ? 'Menyimpan...' : (editingId ? 'Update' : 'Simpan')}
+                {isLoading ? "Menyimpan..." : editingId ? "Update" : "Simpan"}
               </button>
-              
+
               {editingId && (
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
                 >
                   Batal
                 </button>
@@ -165,12 +216,12 @@ const KategoriSuplemen = () => {
           </form>
         </div>
 
-        {/* Tabel Data Kategori */}
+        {/* Tabel Data */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold">Daftar Kategori Penyakit</h2>
+            <h2 className="text-lg font-semibold">Daftar Kategori Obat</h2>
           </div>
-          
+
           {isLoading ? (
             <div className="p-8 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -181,16 +232,16 @@ const KategoriSuplemen = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       No
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Nama Kategori
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Deskripsi
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Aksi
                     </th>
                   </tr>
@@ -198,35 +249,40 @@ const KategoriSuplemen = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {kategoriList.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
-                        Tidak ada data kategori penyakit
+                      <td
+                        colSpan="4"
+                        className="px-6 py-4 text-center text-gray-500"
+                      >
+                        Tidak ada data kategori obat
                       </td>
                     </tr>
                   ) : (
                     kategoriList.map((kategori, index) => (
                       <tr key={kategori.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 text-sm text-gray-900">
                           {index + 1}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {kategori.nama_kategori}
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {kategori.nama}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {kategori.deskripsi || '-'}
+                          {kategori.deskripsi || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 text-sm font-medium">
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEdit(kategori)}
-                              className="text-blue-600 hover:text-blue-900 focus:outline-none"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
                             >
-                              Edit
+                              <i className="fas fa-edit"></i>
+                              <span>Edit</span>
                             </button>
                             <button
                               onClick={() => handleDelete(kategori.id)}
-                              className="text-red-600 hover:text-red-900 focus:outline-none"
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
                             >
-                              Hapus
+                              <i className="fas fa-trash"></i>
+                              <span>Hapus</span>
                             </button>
                           </div>
                         </td>

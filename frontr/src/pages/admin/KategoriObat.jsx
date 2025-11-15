@@ -277,15 +277,17 @@ const KategoriObat = () => {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEdit(kategori)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
                             >
-                              Edit
+                              <i className="fas fa-edit"></i>
+                              <span>Edit</span>
                             </button>
                             <button
                               onClick={() => handleDelete(kategori.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
                             >
-                              Hapus
+                              <i className="fas fa-trash"></i>
+                              <span>Hapus</span>
                             </button>
                           </div>
                         </td>
