@@ -22,6 +22,17 @@ class Penyakit extends Model
         'gambar',
     ];
 
+    protected $appends = ['gambar_url'];
+
+    public function getGambarUrlAttribute()
+    {
+        if (!$this->gambar) {
+            return null;
+        }
+
+        return asset('storage/' . $this->gambar);
+    }
+
     public function obat() {
         return $this->belongsToMany(Obat::class, 'rekomendasi', 'penyakit_id', 'obat_id')->withTimestamps();
     }

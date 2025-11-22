@@ -100,7 +100,14 @@ export default function Login() {
 
       Swal.close();
 
-      login(res.data); // Save token/user to context
+      const userData = {
+        token: res.data.access_token,
+        name: res.data.user.name,
+        email: res.data.user.email,
+        // tambahkan properti lain sesuai kebutuhan
+      };
+
+      login(userData); // Save token/user to context
 
       await showSuccessAlert();
 

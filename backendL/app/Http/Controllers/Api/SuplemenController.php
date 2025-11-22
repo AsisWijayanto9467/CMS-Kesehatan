@@ -13,6 +13,13 @@ class SuplemenController extends Controller
      */
     public function index()
     {
+        $suplemens = Suplemen::with(['kategori', 'dosis'])->paginate(5);
+        return response()->json($suplemens, 200);
+
+    }
+    
+    public function all()
+    {
         $suplemens = Suplemen::with(['kategori', 'dosis'])->get();
         return response()->json($suplemens, 200);
     }
@@ -22,6 +29,12 @@ class SuplemenController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->filled('dosis')) {
+            $request->merge([
+                'dosis' => json_decode($request->dosis, true)
+            ]);
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'kategori_id' => 'nullable|exists:kategori_suplemen,id',
@@ -91,6 +104,12 @@ class SuplemenController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if ($request->filled('dosis')) {
+            $request->merge([
+                'dosis' => json_decode($request->dosis, true)
+            ]);
+        }
+        
         $suplemen = Suplemen::findOrFail($id);
 
         $request->validate([
@@ -114,11 +133,13 @@ class SuplemenController extends Controller
             'dosis.*.dosis' => 'required|string|max:255',
         ]);
 
-        if ($request->hasFile('gambar')) {
-            if ($suplemen->gambar && file_exists(storage_path('app/public/' . $suplemen->gambar))) {
+        if($request->hasFile('gambar')) {
+            if($suplemen->gambar && file_exists(storage_path('app/public/' . $suplemen->gambar))) {
                 unlink(storage_path('app/public/' . $suplemen->gambar));
             }
-            $suplemen->gambar = $request->file('gambar')->store('suplemen', 'public');
+
+            $gambarPath = $request->file('gambar')->store('suplemen', 'public');
+            $suplemen->gambar = $gambarPath;
         }
 
         $suplemen->update($request->except('gambar', 'dosis'));

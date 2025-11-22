@@ -13,6 +13,15 @@ class PenyakitController extends Controller
      */
     public function index()
     {
+        $penyakit = Penyakit::with(['kategori','obat', 'suplemen'])->paginate(5);
+        return response()->json([
+            'success' => true,
+            'data' => $penyakit
+        ], 200);
+    }
+
+    public function all()
+    {
         $penyakit = Penyakit::with(['kategori','obat', 'suplemen'])->get();
         return response()->json([
             'success' => true,
@@ -67,7 +76,13 @@ class PenyakitController extends Controller
      */
     public function show(string $id)
     {
-        $penyakit = Penyakit::with(['obat', 'suplemen'])->findOrFail($id);
+        $penyakit = Penyakit::with([
+            'kategori',
+            'rekomendasi',
+            'rekomendasi.obat',
+            'rekomendasi.suplemen'
+        ])->findOrFail($id);
+
         return response()->json([
             'success' => true,
             'data' => $penyakit
@@ -100,10 +115,12 @@ class PenyakitController extends Controller
         ]);
 
         if($request->hasFile('gambar')) {
-            if($penyakit->gambar && file_exists(storage_path('app/public/' . $request->gambar))) {
+            if($penyakit->gambar && file_exists(storage_path('app/public/' . $penyakit->gambar))) {
                 unlink(storage_path('app/public/' . $penyakit->gambar));
             }
-            $validatedData['gambar'] = $request->file('gambar')->store('penyakit', 'public');
+
+            $gambarPath = $request->file('gambar')->store('penyakit', 'public');
+            $penyakit->gambar = $gambarPath;
         }
 
         $penyakit->update($validatedData);

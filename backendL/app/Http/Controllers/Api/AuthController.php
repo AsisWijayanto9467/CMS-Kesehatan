@@ -51,6 +51,7 @@ class AuthController extends Controller
             'message' => 'Login successful',
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'user' => $user,
         ]);
     }
 
@@ -64,5 +65,78 @@ class AuthController extends Controller
     public function userProfile(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    public function createUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'role' => 'required|string|in:admin,user',  // tambahkan ini
+        ]);
+
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,  // <-- tambah ini
+            'password' => Hash::make($request->password),
+        ]);
+
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => $user
+        ], 201);
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
+            'role' => 'sometimes|string|in:admin,user',
+            'password' => 'sometimes|string|min:6',
+        ]);
+
+        $user->name = $request->name ?? $user->name;
+        $user->email = $request->email ?? $user->email;
+        $user->role = $request->role ?? $user->role;
+        if ($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user
+        ]);
+    }
+
+
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User deleted successfully'
+        ]);
+    }
+
+    public function show(string $id)
+    {
+        $user = User::findOrFail($id);
+        return response()->json($user, 200);
+    }
+
+    public function read(Request $request)
+    {
+        $user = User::paginate(5);
+        return response()->json($user, 200);
     }
 }

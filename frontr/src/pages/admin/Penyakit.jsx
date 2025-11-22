@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { AdminLayout } from "../../components";
+import api from "../../services/api";
 import Swal from "sweetalert2";
+import RichText from "../../components/RichText";
 
 const Penyakit = () => {
   const [penyakits, setPenyakits] = useState([]);
@@ -12,6 +14,8 @@ const Penyakit = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedPenyakit, setSelectedPenyakit] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState(null);
 
   const [formData, setFormData] = useState({
     nama: "",
@@ -27,108 +31,48 @@ const Penyakit = () => {
     rekomendasi: [{ obat_id: "", suplemen_id: "" }],
   });
 
-  // Data dummy untuk kategori penyakit
-  const dummyKategoris = [
-    { id: 1, nama_kategori: "Penyakit Menular" },
-    { id: 2, nama_kategori: "Penyakit Tidak Menular" },
-    { id: 3, nama_kategori: "Penyakit Kronis" },
-    { id: 4, nama_kategori: "Penyakit Akut" },
-    { id: 5, nama_kategori: "Penyakit Genetik" },
-  ];
-
-  // Data dummy untuk obat
-  const dummyObats = [
-    { id: 1, nama: "Paracetamol 500mg" },
-    { id: 2, nama: "Amoxicillin 500mg" },
-    { id: 3, nama: "Vitamin C 1000mg" },
-    { id: 4, nama: "Antasida DOEN" },
-    { id: 5, nama: "Cetirizine 10mg" },
-  ];
-
-  // Data dummy untuk suplemen
-  const dummySuplemens = [
-    { id: 1, nama: "Vitamin D3 1000IU" },
-    { id: 2, nama: "Zinc Supplement" },
-    { id: 3, nama: "Probiotic Capsule" },
-    { id: 4, nama: "Omega-3 Fish Oil" },
-    { id: 5, nama: "Multivitamin Complete" },
-  ];
-
-  // Data dummy untuk penyakit
-  const dummyPenyakits = [
-    {
-      id: 1,
-      nama: "Influenza",
-      kategori_id: 1,
-      gejala: "Demam, batuk, pilek, sakit tenggorokan, nyeri otot",
-      penyebab: "Virus influenza",
-      keterangan:
-        "Penyakit pernapasan menular yang disebabkan oleh virus influenza",
-      diagnosis: "Berdasarkan gejala klinis dan tes rapid influenza",
-      pencegahan:
-        "Vaksinasi influenza, cuci tangan rutin, hindari kontak dengan penderita",
-      tingkat_keparahan: "Ringan",
-      jenis_penularan: "Melalui udara dan kontak langsung",
-      gambar: null,
-      rekomendasi: [
-        { obat_id: 1, suplemen_id: 3 },
-        { obat_id: 3, suplemen_id: 1 },
-      ],
-      kategori: { id: 1, nama_kategori: "Penyakit Menular" },
-    },
-    {
-      id: 2,
-      nama: "Hipertensi",
-      kategori_id: 2,
-      gejala: "Sakit kepala, pusing, penglihatan kabur, nyeri dada",
-      penyebab: "Faktor genetik, gaya hidup tidak sehat, obesitas",
-      keterangan: "Tekanan darah tinggi yang menetap di atas 140/90 mmHg",
-      diagnosis: "Pengukuran tekanan darah secara berkala",
-      pencegahan: "Diet rendah garam, olahraga teratur, hindari stres",
-      tingkat_keparahan: "Sedang",
-      jenis_penularan: "Tidak menular",
-      gambar: null,
-      rekomendasi: [{ obat_id: 4, suplemen_id: 4 }],
-      kategori: { id: 2, nama_kategori: "Penyakit Tidak Menular" },
-    },
-    {
-      id: 3,
-      nama: "Diabetes Mellitus Tipe 2",
-      kategori_id: 3,
-      gejala:
-        "Sering haus, sering buang air kecil, penurunan berat badan, lemas",
-      penyebab: "Resistensi insulin, faktor genetik, obesitas",
-      keterangan: "Gangguan metabolisme glukosa kronis",
-      diagnosis: "Tes gula darah puasa dan HbA1c",
-      pencegahan: "Diet sehat, olahraga teratur, pertahankan berat badan ideal",
-      tingkat_keparahan: "Berat",
-      jenis_penularan: "Tidak menular",
-      gambar: null,
-      rekomendasi: [
-        { obat_id: 2, suplemen_id: 5 },
-        { obat_id: 5, suplemen_id: 2 },
-      ],
-      kategori: { id: 3, nama_kategori: "Penyakit Kronis" },
-    },
-  ];
-
-  // Fetch data dummy
+  // ======================================================
+  // FETCH DATA FROM API
+  // ======================================================
   useEffect(() => {
-    fetchDummyData();
+    fetchData();
   }, []);
 
-  const fetchDummyData = () => {
-    setLoading(true);
-    // Simulasi loading
-    setTimeout(() => {
-      setPenyakits(dummyPenyakits);
-      setKategoris(dummyKategoris);
-      setObats(dummyObats);
-      setSuplemens(dummySuplemens);
+  const fetchData = async (page = 1) => {
+    try {
+      setLoading(true);
+
+      const [p, k, o, s] = await Promise.all([
+        api.get(`/penyakit?page=${page}`),
+        api.get("/kategori-penyakit"),
+        api.get("/all-obat"),
+        api.get("/all-suplemen"),
+      ]);
+
+      setPenyakits(p.data.data.data);
+      setPagination(p.data.data);
+      setKategoris(k.data.data);
+      setObats(o.data);
+      setSuplemens(s.data);
+
+      console.log("Data obat:", o.data);
+      console.log("Data suplemen:", s.data);
+      // Data obat
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error!", "Gagal memuat data dari server", "error");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
+  const filteredPenyakits = penyakits.filter((p) =>
+    p.nama.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // ======================================================
+  // FORM INPUT HANDLING
+  // ======================================================
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -140,6 +84,7 @@ const Penyakit = () => {
   const handleRekomendasiChange = (index, field, value) => {
     const updatedRekomendasi = [...formData.rekomendasi];
     updatedRekomendasi[index][field] = value;
+
     setFormData((prev) => ({
       ...prev,
       rekomendasi: updatedRekomendasi,
@@ -155,12 +100,9 @@ const Penyakit = () => {
 
   const removeRekomendasiField = (index) => {
     if (formData.rekomendasi.length > 1) {
-      const updatedRekomendasi = formData.rekomendasi.filter(
-        (_, i) => i !== index
-      );
       setFormData((prev) => ({
         ...prev,
-        rekomendasi: updatedRekomendasi,
+        rekomendasi: prev.rekomendasi.filter((_, i) => i !== index),
       }));
     }
   };
@@ -168,10 +110,7 @@ const Penyakit = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        gambar: file,
-      }));
+      setFormData((prev) => ({ ...prev, gambar: file }));
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -190,109 +129,139 @@ const Penyakit = () => {
       gambar: null,
       rekomendasi: [{ obat_id: "", suplemen_id: "" }],
     });
+
     setImagePreview(null);
     setEditMode(false);
     setSelectedPenyakit(null);
     setShowForm(false);
   };
 
+  // ======================================================
+  // SUBMIT (ADD / UPDATE)
+  // ======================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Simulasi proses penyimpanan
-      setTimeout(() => {
-        if (editMode) {
-          // Update data dummy
-          const updatedPenyakits = penyakits.map((penyakit) =>
-            penyakit.id === selectedPenyakit.id
-              ? {
-                  ...penyakit,
-                  ...formData,
-                  id: selectedPenyakit.id,
-                  kategori: kategoris.find(
-                    (k) => k.id === parseInt(formData.kategori_id)
-                  ),
-                }
-              : penyakit
-          );
-          setPenyakits(updatedPenyakits);
-          Swal.fire("Success!", "Data penyakit berhasil diupdate", "success");
-        } else {
-          // Tambah data dummy baru
-          const newPenyakit = {
-            ...formData,
-            id: Date.now(), // ID unik berdasarkan timestamp
-            kategori: kategoris.find(
-              (k) => k.id === parseInt(formData.kategori_id)
-            ),
-          };
-          setPenyakits((prev) => [...prev, newPenyakit]);
-          Swal.fire(
-            "Success!",
-            "Data penyakit berhasil ditambahkan",
-            "success"
-          );
+      let form = new FormData();
+
+      // append semua field selain rekomendasi
+      Object.keys(formData).forEach((key) => {
+        if (key !== "rekomendasi" && key !== "gambar") {
+          form.append(key, formData[key]);
         }
 
-        resetForm();
-        setLoading(false);
-      }, 1000);
+        if (key === "gambar" && !(formData.gambar instanceof File)) {
+          return;
+        }
+      });
+
+      // Gambar
+      if (formData.gambar) {
+        form.append("gambar", formData.gambar);
+      }
+
+      // Rekomendasi (FORMAT BENAR UNTUK LARAVEL)
+      formData.rekomendasi.forEach((rec, index) => {
+        form.append(`rekomendasi[${index}][obat_id]`, rec.obat_id || "");
+        form.append(
+          `rekomendasi[${index}][suplemen_id]`,
+          rec.suplemen_id || ""
+        );
+      });
+
+      let res;
+
+      if (editMode) {
+        res = await api.post(
+          `/penyakit/${selectedPenyakit.id}?_method=PUT`,
+          form,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        Swal.fire("Success!", "Data penyakit berhasil diperbarui", "success");
+      } else {
+        res = await api.post(`/penyakit`, form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        Swal.fire("Success!", "Data penyakit berhasil ditambahkan", "success");
+      }
+
+      fetchData();
+      resetForm();
     } catch (error) {
-      console.error("Error saving penyakit:", error);
-      Swal.fire("Error!", "Gagal menyimpan data penyakit", "error");
+      console.error("ERROR RESPONSE:", error.response?.data);
+      Swal.fire("Error!", "Gagal menyimpan data", "error");
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (penyakit) => {
-    setFormData({
-      nama: penyakit.nama,
-      kategori_id: penyakit.kategori_id || "",
-      gejala: penyakit.gejala || "",
-      penyebab: penyakit.penyebab || "",
-      keterangan: penyakit.keterangan || "",
-      diagnosis: penyakit.diagnosis || "",
-      pencegahan: penyakit.pencegahan || "",
-      tingkat_keparahan: penyakit.tingkat_keparahan || "",
-      jenis_penularan: penyakit.jenis_penularan || "",
-      gambar: null,
-      rekomendasi:
-        penyakit.rekomendasi && penyakit.rekomendasi.length > 0
-          ? penyakit.rekomendasi
-          : [{ obat_id: "", suplemen_id: "" }],
-    });
+  // ======================================================
+  // EDIT (GET DETAIL BY ID)
+  // ======================================================
+  const handleEdit = async (penyakit) => {
+    try {
+      setLoading(true);
 
-    setEditMode(true);
-    setSelectedPenyakit(penyakit);
-    setShowForm(true);
+      const res = await api.get(`/penyakit/${penyakit.id}`);
+      const data = res.data.data;
+
+      setFormData({
+        nama: data.nama,
+        kategori_id: data.kategori_id || "",
+        gejala: data.gejala || "",
+        penyebab: data.penyebab || "",
+        keterangan: data.keterangan || "",
+        diagnosis: data.diagnosis || "",
+        pencegahan: data.pencegahan || "",
+        tingkat_keparahan: data.tingkat_keparahan || "",
+        jenis_penularan: data.jenis_penularan || "",
+        gambar: null,
+        rekomendasi:
+          data.rekomendasi?.length > 0
+            ? data.rekomendasi.map((r) => ({
+                obat_id: r.obat_id || "",
+                suplemen_id: r.suplemen_id || "",
+              }))
+            : [{ obat_id: "", suplemen_id: "" }],
+      });
+
+      setImagePreview(data.gambar_url || null);
+      setSelectedPenyakit(data);
+      setEditMode(true);
+      setShowForm(true);
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "Gagal mengambil data penyakit", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ======================================================
+  // DELETE
+  // ======================================================
   const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Apakah Anda yakin?",
-      text: "Data penyakit yang dihapus tidak dapat dikembalikan!",
+    const ok = await Swal.fire({
+      title: "Yakin hapus?",
+      text: "Data tidak dapat dikembalikan!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: "Batal",
+      confirmButtonText: "Ya, hapus",
     });
 
-    if (result.isConfirmed) {
-      try {
-        // Hapus data dummy
-        const filteredPenyakits = penyakits.filter(
-          (penyakit) => penyakit.id !== id
-        );
-        setPenyakits(filteredPenyakits);
-        Swal.fire("Deleted!", "Data penyakit berhasil dihapus", "success");
-      } catch (error) {
-        console.error("Error deleting penyakit:", error);
-        Swal.fire("Error!", "Gagal menghapus penyakit", "error");
-      }
+    if (!ok.isConfirmed) return;
+
+    try {
+      await api.delete(`/penyakit/${id}`);
+      Swal.fire("Deleted!", "Data berhasil dihapus", "success");
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error!", "Gagal menghapus data", "error");
     }
   };
 
@@ -305,20 +274,24 @@ const Penyakit = () => {
     resetForm();
   };
 
-  // Helper function untuk mendapatkan nama obat/suplemen berdasarkan ID
-  const getObatName = (obatId) => {
-    const obat = obats.find((o) => o.id === obatId);
-    return obat ? obat.nama : "Tidak diketahui";
+  // Helper
+  const getObatName = (id) => {
+    const o = obats.find((x) => x.id == id);
+    return o ? o.nama : "-";
   };
 
-  const getSuplemenName = (suplemenId) => {
-    const suplemen = suplemens.find((s) => s.id === suplemenId);
-    return suplemen ? suplemen.nama : "Tidak diketahui";
+  const getSuplemenName = (id) => {
+    const s = suplemens.find((x) => x.id == id);
+    return s ? s.nama : "-";
   };
+
+  console.log("Form rekomendasi:", formData.rekomendasi);
+  console.log("Obats:", obats);
+  console.log("Suplemens:", suplemens);
 
   return (
     <AdminLayout>
-      <div className="p-6 text-gray-800">
+      <div className="p-1 text-gray-800">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -386,7 +359,7 @@ const Penyakit = () => {
                       <option value="">Pilih Kategori</option>
                       {kategoris.map((kategori) => (
                         <option key={kategori.id} value={kategori.id}>
-                          {kategori.nama_kategori}
+                          {kategori.nama}
                         </option>
                       ))}
                     </select>
@@ -482,13 +455,11 @@ const Penyakit = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Keterangan
                 </label>
-                <textarea
-                  name="keterangan"
+                <RichText
                   value={formData.keterangan}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Informasi tambahan tentang penyakit"
+                  onChange={(content) =>
+                    setFormData((prev) => ({ ...prev, keterangan: content }))
+                  }
                 />
               </div>
 
@@ -590,11 +561,15 @@ const Penyakit = () => {
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none"
                             >
                               <option value="">Pilih Obat</option>
-                              {obats.map((obat) => (
-                                <option key={obat.id} value={obat.id}>
-                                  {obat.nama}
-                                </option>
-                              ))}
+                              {Array.isArray(obats) &&
+                                obats.map((obat) => (
+                                  <option
+                                    key={obat.id}
+                                    value={obat.id.toString()}
+                                  >
+                                    {obat.nama}
+                                  </option>
+                                ))}
                             </select>
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                               <i className="fas fa-chevron-down text-gray-400 text-sm"></i>
@@ -630,11 +605,12 @@ const Penyakit = () => {
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 appearance-none"
                             >
                               <option value="">Pilih Suplemen</option>
-                              {suplemens.map((suplemen) => (
-                                <option key={suplemen.id} value={suplemen.id}>
-                                  {suplemen.nama}
-                                </option>
-                              ))}
+                              {Array.isArray(suplemens) &&
+                                suplemens.map((suplemen) => (
+                                  <option key={suplemen.id} value={suplemen.id}>
+                                    {suplemen.nama}
+                                  </option>
+                                ))}
                             </select>
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                               <i className="fas fa-chevron-down text-gray-400 text-sm"></i>
@@ -698,25 +674,26 @@ const Penyakit = () => {
                 </div>
               </div>
 
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-3 pt-6 border-t">
+              {/* Submit Buttons */}
+              <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                  className="px-4 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100"
                 >
                   Batal
                 </button>
+
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition duration-200"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
                 >
                   {loading
                     ? "Menyimpan..."
                     : editMode
                     ? "Update Penyakit"
-                    : "Simpan Penyakit"}
+                    : "Simpan"}
                 </button>
               </div>
             </form>
@@ -726,7 +703,9 @@ const Penyakit = () => {
         {/* Statistics Cards - Hanya ditampilkan ketika form tidak aktif */}
         {!showForm && (
           <>
+            {/* ==== CARD STATISTIK ==== */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              {/* Total Penyakit */}
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center">
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -742,21 +721,29 @@ const Penyakit = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Penyakit Menular */}
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center">
                   <div className="p-2 bg-green-100 rounded-lg">
-                    <i className="fas fa-shield-alt text-green-600 text-xl"></i>
+                    <i className="fas fa-shield-virus text-green-600 text-xl"></i>
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
                       Penyakit Menular
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {penyakits.filter((p) => p.kategori_id === 1).length}
+                      {
+                        penyakits.filter(
+                          (x) => x.jenis_penularan && x.jenis_penularan !== ""
+                        ).length
+                      }
                     </p>
                   </div>
                 </div>
               </div>
+
+              {/* Penyakit Kronis */}
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center">
                   <div className="p-2 bg-yellow-100 rounded-lg">
@@ -767,11 +754,13 @@ const Penyakit = () => {
                       Penyakit Kronis
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {penyakits.filter((p) => p.kategori_id === 3).length}
+                      {penyakits.filter((x) => x.kategori_id == 3).length}
                     </p>
                   </div>
                 </div>
               </div>
+
+              {/* Total Tingkat Berat */}
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center">
                   <div className="p-2 bg-red-100 rounded-lg">
@@ -783,12 +772,71 @@ const Penyakit = () => {
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {
-                        penyakits.filter((p) => p.tingkat_keparahan === "Berat")
+                        penyakits.filter((x) => x.tingkat_keparahan === "Berat")
                           .length
                       }
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+              <div className="mb-4 mt-4">
+                <div className="flex justify-center px-4">
+                  <div className="relative w-full">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Cari nama obat..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        <svg
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Search Results Info */}
+                {searchTerm && (
+                  <div className="ml-4 mt-2 text-sm text-gray-600">
+                    Menampilkan hasil pencarian untuk:{" "}
+                    <span className="font-medium">"{searchTerm}"</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -830,6 +878,7 @@ const Penyakit = () => {
                         </th>
                       </tr>
                     </thead>
+
                     <tbody className="bg-white divide-y divide-gray-200">
                       {penyakits.length === 0 ? (
                         <tr>
@@ -841,63 +890,70 @@ const Penyakit = () => {
                           </td>
                         </tr>
                       ) : (
-                        penyakits.map((penyakit, index) => (
-                          <tr key={penyakit.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {index + 1}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                        filteredPenyakits.map((p, index) => (
+                          <tr key={p.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm">{index + 1}</td>
+
+                            {/* Nama + Gejala */}
+                            <td className="px-6 py-4">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {penyakit.nama}
-                                </div>
-                                <div className="text-sm text-gray-500 truncate max-w-xs">
-                                  {penyakit.gejala
-                                    ? penyakit.gejala.substring(0, 50) + "..."
-                                    : "Tidak ada gejala"}
-                                </div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {p.nama}
+                                </p>
+                                <p className="text-sm text-gray-500 truncate max-w-xs">
+                                  {p.gejala
+                                    ? p.gejala.substring(0, 50) + "..."
+                                    : "-"}
+                                </p>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {penyakit.kategori?.nama_kategori ||
-                                  "Tidak ada kategori"}
+
+                            {/* Kategori */}
+                            <td className="px-6 py-4">
+                              <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
+                                {kategoris.find((k) => k.id === p.kategori_id)
+                                  ?.nama || "Tidak Ada"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+
+                            {/* Tingkat Keparahan */}
+                            <td className="px-6 py-4">
                               <span
-                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  penyakit.tingkat_keparahan === "Ringan"
-                                    ? "bg-green-100 text-green-800"
-                                    : penyakit.tingkat_keparahan === "Sedang"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : penyakit.tingkat_keparahan === "Berat"
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-gray-100 text-gray-800"
-                                }`}
+                                className={`px-2 py-1 text-xs rounded-full
+                                  ${
+                                    p.tingkat_keparahan === "Ringan"
+                                      ? "bg-green-100 text-green-800"
+                                      : p.tingkat_keparahan === "Sedang"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : p.tingkat_keparahan === "Berat"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
                               >
-                                {penyakit.tingkat_keparahan ||
-                                  "Tidak diketahui"}
+                                {p.tingkat_keparahan || "-"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {penyakit.jenis_penularan || "Tidak menular"}
+
+                            {/* Jenis Penularan */}
+                            <td className="px-6 py-4 text-sm text-gray-900">
+                              {p.jenis_penularan || "Tidak menular"}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+
+                            {/* Aksi */}
+                            <td className="px-6 py-4 text-sm">
                               <div className="flex space-x-2">
                                 <button
-                                  onClick={() => handleEdit(penyakit)}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
+                                  onClick={() => handleEdit(p)}
+                                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
                                 >
-                                  <i className="fas fa-edit"></i>
-                                  <span>Edit</span>
+                                  <i className="fas fa-edit"></i> Edit
                                 </button>
+
                                 <button
-                                  onClick={() => handleDelete(penyakit.id)}
-                                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
+                                  onClick={() => handleDelete(p.id)}
+                                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
                                 >
-                                  <i className="fas fa-trash"></i>
-                                  <span>Hapus</span>
+                                  <i className="fas fa-trash"></i> Hapus
                                 </button>
                               </div>
                             </td>
@@ -908,6 +964,29 @@ const Penyakit = () => {
                   </table>
                 </div>
               )}
+              <div className="flex justify-center mt-6">
+                <div className="flex space-x-2 p-3 bg-white shadow-md rounded-lg">
+                  {pagination?.links?.map((link, i) => (
+                    <button
+                      key={i}
+                      disabled={!link.url}
+                      onClick={() => {
+                        const page = new URL(link.url).searchParams.get("page");
+                        fetchData(page);
+                      }}
+                      className={`px-4 py-2 border rounded-lg transition-all
+                        ${
+                          link.active
+                            ? "bg-blue-600 text-white font-semibold"
+                            : "bg-gray-100 hover:bg-gray-200"
+                        }
+                        ${!link.url ? "opacity-50 cursor-not-allowed" : ""}
+                      `}
+                      dangerouslySetInnerHTML={{ __html: link.label }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}

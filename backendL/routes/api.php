@@ -16,6 +16,16 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/createUser', [AuthController::class, 'createUser']);
+    Route::get('/akun', [AuthController::class, 'read']);
+    Route::get('/show/{id}', [AuthController::class, 'show']);
+    Route::put('/updateUser/{id}', [AuthController::class, 'updateUser']);
+    Route::delete('/deleteUser/{id}', [AuthController::class, 'deleteUser']);
+
+    // All Item
+    Route::get('/all-obat', [ObatController::class, 'all']);
+    Route::get('/all-penyakit', [PenyakitController::class, 'all']);
+    Route::get('/all-suplemen', [SuplemenController::class, 'all']);
 
     // CRUD Obat
     Route::get('/obat', [ObatController::class, 'index']);

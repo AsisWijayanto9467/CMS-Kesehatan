@@ -26,6 +26,18 @@ class Obat extends Model
         'peringatan',
     ];
 
+    protected $appends = ['gambar_url'];
+
+    public function getGambarUrlAttribute()
+    {
+        if (!$this->gambar) {
+            return null;
+        }
+
+        return asset('storage/' . $this->gambar);
+    }
+
+
     public function dosis() {
         return $this->hasMany(DosisObat::class, 'obat_id');
     }

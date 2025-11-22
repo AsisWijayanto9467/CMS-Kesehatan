@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { AdminLayout } from "../../components";
+import api from "../../services/api";
 import Swal from "sweetalert2";
+import RichText from "../../components/RichText";
 
 const Suplemen = () => {
   const [suplemens, setSuplemens] = useState([]);
@@ -10,6 +12,8 @@ const Suplemen = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedSuplemen, setSelectedSuplemen] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState(null);
 
   const [formData, setFormData] = useState({
     nama: "",
@@ -31,136 +35,57 @@ const Suplemen = () => {
     ],
   });
 
-  // Data dummy untuk kategori suplemen
-  const dummyKategoris = [
-    { id: 1, nama_kategori: "Vitamin" },
-    { id: 2, nama_kategori: "Mineral" },
-    { id: 3, nama_kategori: "Probiotik" },
-    { id: 4, nama_kategori: "Asam Amino" },
-    { id: 5, nama_kategori: "Ekstrak Herbal" },
-  ];
-
-  // Data dummy untuk suplemen
-  const dummySuplemens = [
-    {
-      id: 1,
-      nama: "Vitamin C 1000mg",
-      kategori_id: 1,
-      deskripsi: "Suplemen vitamin C dosis tinggi untuk daya tahan tubuh",
-      manfaat: "Meningkatkan sistem imun, antioksidan, produksi kolagen",
-      nomor_registrasi: "BPOM123456789",
-      nama_produsen_importir: "PT Soho Global Health",
-      alamat_produsen_importir: "Jl. Hayam Wuruk No. 10, Jakarta",
-      status_halal: "halal",
-      cara_penyimpanan:
-        "Simpan di tempat sejuk dan kering, hindari sinar matahari langsung",
-      aturan_penggunaan: "1 tablet sehari setelah makan",
-      komposisi: "Ascorbic Acid 1000mg, eksipien: selulosa, silikon dioksida",
-      peringatan: "Konsultasi dokter untuk penderita maag atau gangguan ginjal",
-      gambar: null,
-      dosis: [
-        { kategori_usia: "Dewasa", dosis: "1 tablet sehari" },
-        { kategori_usia: "Anak-anak", dosis: "1/2 tablet sehari" },
-      ],
-      kategori: { id: 1, nama_kategori: "Vitamin" },
-    },
-    {
-      id: 2,
-      nama: "Zinc Supplement 50mg",
-      kategori_id: 2,
-      deskripsi: "Suplemen zinc untuk meningkatkan sistem imun dan metabolisme",
-      manfaat: "Meningkatkan imunitas, penyembuhan luka, fungsi enzim",
-      nomor_registrasi: "BPOM987654321",
-      nama_produsen_importir: "PT Kalbe Farma",
-      alamat_produsen_importir: "Jl. Letjen Suprapto No. 45, Jakarta",
-      status_halal: "halal",
-      cara_penyimpanan: "Simpan di tempat kering, suhu ruangan",
-      aturan_penggunaan: "1 kapsul sehari setelah makan",
-      komposisi: "Zinc Gluconate 50mg, eksipien: magnesium stearate",
-      peringatan: "Jangan melebihi dosis yang dianjurkan",
-      gambar: null,
-      dosis: [
-        { kategori_usia: "Dewasa", dosis: "1 kapsul sehari" },
-        { kategori_usia: "Anak-anak", dosis: "1/2 kapsul sehari" },
-      ],
-      kategori: { id: 2, nama_kategori: "Mineral" },
-    },
-    {
-      id: 3,
-      nama: "Probiotic Capsule",
-      kategori_id: 3,
-      deskripsi: "Probiotik dengan 10 miliar CFU untuk kesehatan pencernaan",
-      manfaat:
-        "Menjaga keseimbangan flora usus, meningkatkan kesehatan pencernaan",
-      nomor_registrasi: "BPOM456789123",
-      nama_produsen_importir: "PT Dexa Medica",
-      alamat_produsen_importir: "Jl. Industri No. 25, Bandung",
-      status_halal: "tidak diketahui",
-      cara_penyimpanan: "Simpan di lemari es (2-8°C)",
-      aturan_penggunaan: "1 kapsul sehari sebelum makan",
-      komposisi:
-        "Lactobacillus acidophilus, Bifidobacterium bifidum, 10 miliar CFU",
-      peringatan: "Simpan di lemari es, konsumsi sesuai petunjuk",
-      gambar: null,
-      dosis: [
-        { kategori_usia: "Dewasa", dosis: "1 kapsul sehari" },
-        { kategori_usia: "Anak-anak", dosis: "1 kapsul sehari" },
-      ],
-      kategori: { id: 3, nama_kategori: "Probiotik" },
-    },
-    {
-      id: 4,
-      nama: "Omega-3 Fish Oil 1000mg",
-      kategori_id: 5,
-      deskripsi: "Minyak ikan dengan kandungan EPA dan DHA tinggi",
-      manfaat: "Kesehatan jantung, otak, dan sendi, anti-inflamasi",
-      nomor_registrasi: "BPOM654321987",
-      nama_produsen_importir: "PT Merck Tbk",
-      alamat_produsen_importir: "Jl. TB Simatupang No. 8, Jakarta",
-      status_halal: "tidak halal",
-      cara_penyimpanan: "Simpan di tempat sejuk, hindari panas",
-      aturan_penggunaan: "1-2 softgel sehari setelah makan",
-      komposisi: "Fish Oil 1000mg, EPA 180mg, DHA 120mg",
-      peringatan: "Tidak untuk penderita alergi ikan",
-      gambar: null,
-      dosis: [
-        { kategori_usia: "Dewasa", dosis: "1-2 softgel sehari" },
-        { kategori_usia: "Anak-anak", dosis: "1 softgel sehari" },
-      ],
-      kategori: { id: 5, nama_kategori: "Ekstrak Herbal" },
-    },
-  ];
-
-  // Fetch data dummy
+  // ─────────────────────────────
+  //   FETCH DATA API
+  // ─────────────────────────────
   useEffect(() => {
-    fetchDummyData();
+    fetchSuplemens();
+    fetchKategoriSuplemen();
   }, []);
 
-  const fetchDummyData = () => {
+  const fetchSuplemens = async (page = 1) => {
     setLoading(true);
-    // Simulasi loading
-    setTimeout(() => {
-      setSuplemens(dummySuplemens);
-      setKategoris(dummyKategoris);
-      setLoading(false);
-    }, 1000);
+    try {
+      const res = await api.get(`/suplemen?page=${page}`);
+      setSuplemens(res.data.data);
+      setPagination(res.data);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Gagal mengambil data suplemen!", "error");
+    }
+    setLoading(false);
   };
 
+  const filteredSuplemens = suplemens.filter((item) =>
+    item.nama.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const fetchKategoriSuplemen = async () => {
+    try {
+      const res = await api.get("/kategori-suplemen");
+
+      // pastikan selalu array
+      const list = res.data.data ?? res.data ?? [];
+
+      setKategoris(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error("Gagal fetch kategori:", err);
+      Swal.fire("Error", "Gagal mengambil kategori!", "error");
+    }
+  };
+
+  // ─────────────────────────────
+  //   HANDLE VALUE
+  // ─────────────────────────────
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDosisChange = (index, field, value) => {
-    const updatedDosis = [...formData.dosis];
-    updatedDosis[index][field] = value;
-    setFormData((prev) => ({
-      ...prev,
-      dosis: updatedDosis,
-    }));
+    const updated = [...formData.dosis];
+    updated[index][field] = value;
+    setFormData((prev) => ({ ...prev, dosis: updated }));
   };
 
   const addDosisField = () => {
@@ -172,25 +97,20 @@ const Suplemen = () => {
 
   const removeDosisField = (index) => {
     if (formData.dosis.length > 1) {
-      const updatedDosis = formData.dosis.filter((_, i) => i !== index);
-      setFormData((prev) => ({
-        ...prev,
-        dosis: updatedDosis,
-      }));
+      const updated = formData.dosis.filter((_, i) => i !== index);
+      setFormData((prev) => ({ ...prev, dosis: updated }));
     }
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        gambar: file,
-      }));
-      setImagePreview(URL.createObjectURL(file));
-    }
+    setFormData((prev) => ({ ...prev, gambar: file }));
+    setImagePreview(URL.createObjectURL(file));
   };
 
+  // ─────────────────────────────
+  //   RESET FORM
+  // ─────────────────────────────
   const resetForm = () => {
     setFormData({
       nama: "",
@@ -217,135 +137,144 @@ const Suplemen = () => {
     setShowForm(false);
   };
 
+  const closeForm = () => {
+    resetForm();
+  };
+
+  // ─────────────────────────────
+  //   SUBMIT FORM (CREATE & UPDATE)
+  // ─────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Simulasi proses penyimpanan
-      setTimeout(() => {
-        if (editMode) {
-          // Update data dummy
-          const updatedSuplemens = suplemens.map((suplemen) =>
-            suplemen.id === selectedSuplemen.id
-              ? {
-                  ...suplemen,
-                  ...formData,
-                  id: selectedSuplemen.id,
-                  kategori: kategoris.find(
-                    (k) => k.id === parseInt(formData.kategori_id)
-                  ),
-                }
-              : suplemen
-          );
-          setSuplemens(updatedSuplemens);
-          Swal.fire("Success!", "Suplemen berhasil diupdate", "success");
-        } else {
-          // Tambah data dummy baru
-          const newSuplemen = {
-            ...formData,
-            id: Date.now(), // ID unik berdasarkan timestamp
-            kategori: kategoris.find(
-              (k) => k.id === parseInt(formData.kategori_id)
-            ),
-          };
-          setSuplemens((prev) => [...prev, newSuplemen]);
-          Swal.fire("Success!", "Suplemen berhasil ditambahkan", "success");
-        }
+      let form = new FormData();
 
-        resetForm();
-        setLoading(false);
-      }, 1000);
+      Object.keys(formData).forEach((key) => {
+        if (key === "gambar") {
+          if (formData.gambar instanceof File) {
+            form.append("gambar", formData.gambar);
+          }
+        } else if (key !== "dosis") {
+          form.append(key, formData[key]);
+        }
+      });
+
+      form.append("dosis", JSON.stringify(formData.dosis));
+
+      let res;
+      if (editMode) {
+        res = await api.post(
+          `/suplemen/${selectedSuplemen.id}?_method=PUT`,
+          form
+        );
+      } else {
+        res = await api.post("/suplemen", form);
+      }
+
+      Swal.fire("Success", res.data.message, "success");
+      fetchSuplemens();
+      resetForm();
     } catch (error) {
-      console.error("Error saving suplemen:", error);
-      Swal.fire("Error!", "Gagal menyimpan data suplemen", "error");
+      Swal.fire("Error", "Gagal menyimpan obat", "error");
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (suplemen) => {
-    setFormData({
-      nama: suplemen.nama,
-      kategori_id: suplemen.kategori_id || "",
-      deskripsi: suplemen.deskripsi || "",
-      manfaat: suplemen.manfaat || "",
-      nomor_registrasi: suplemen.nomor_registrasi || "",
-      nama_produsen_importir: suplemen.nama_produsen_importir || "",
-      alamat_produsen_importir: suplemen.alamat_produsen_importir || "",
-      status_halal: suplemen.status_halal,
-      cara_penyimpanan: suplemen.cara_penyimpanan || "",
-      aturan_penggunaan: suplemen.aturan_penggunaan || "",
-      komposisi: suplemen.komposisi || "",
-      peringatan: suplemen.peringatan || "",
-      gambar: null,
-      dosis:
-        suplemen.dosis && suplemen.dosis.length > 0
-          ? suplemen.dosis
-          : [
-              { kategori_usia: "Dewasa", dosis: "" },
-              { kategori_usia: "Anak-anak", dosis: "" },
-            ],
-    });
-
+  // ─────────────────────────────
+  //   EDIT DATA
+  // ─────────────────────────────
+  const handleEdit = (item) => {
     setEditMode(true);
-    setSelectedSuplemen(suplemen);
+    setSelectedSuplemen(item);
     setShowForm(true);
-  };
+    setImagePreview(item.gambar_url);
 
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Apakah Anda yakin?",
-      text: "Data suplemen yang dihapus tidak dapat dikembalikan!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: "Batal",
-    });
+    let parsedDosis = [];
 
-    if (result.isConfirmed) {
+    // Jika API mengirim string JSON → parse
+    if (typeof item.dosis === "string") {
       try {
-        // Hapus data dummy
-        const filteredSuplemens = suplemens.filter(
-          (suplemen) => suplemen.id !== id
-        );
-        setSuplemens(filteredSuplemens);
-        Swal.fire("Deleted!", "Suplemen berhasil dihapus", "success");
+        parsedDosis = Array.isArray(item.dosis)
+          ? item.dosis
+          : JSON.parse(item.dosis);
       } catch (error) {
-        console.error("Error deleting suplemen:", error);
-        Swal.fire("Error!", "Gagal menghapus suplemen", "error");
+        parsedDosis = [];
       }
     }
+    // Jika API mengirim null → fallback default
+    else if (!Array.isArray(item.dosis)) {
+      parsedDosis = [];
+    } else {
+      parsedDosis = item.dosis;
+    }
+
+    // Jika kosong → set default
+    if (parsedDosis.length === 0) {
+      parsedDosis = [
+        { kategori_usia: "Dewasa", dosis: "" },
+        { kategori_usia: "Anak-anak", dosis: "" },
+      ];
+    }
+
+    setFormData({
+      nama: item.nama,
+      kategori_id: item.kategori_id,
+      deskripsi: item.deskripsi,
+      manfaat: item.manfaat,
+      nomor_registrasi: item.nomor_registrasi,
+      nama_produsen_importir: item.nama_produsen_importir,
+      alamat_produsen_importir: item.alamat_produsen_importir,
+      status_halal: item.status_halal,
+      cara_penyimpanan: item.cara_penyimpanan,
+      aturan_penggunaan: item.aturan_penggunaan,
+      komposisi: item.komposisi,
+      peringatan: item.peringatan,
+      gambar: null,
+      dosis: parsedDosis,
+    });
   };
 
-  const openForm = () => {
-    resetForm();
-    setShowForm(true);
-  };
+  // ─────────────────────────────
+  //   DELETE DATA
+  // ─────────────────────────────
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "Hapus data?",
+      text: "Data yang dihapus tidak dapat dikembalikan.",
+      showCancelButton: true,
+    });
 
-  const closeForm = () => {
-    resetForm();
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await api.delete(`/suplemen/${id}`);
+      Swal.fire("Berhasil!", "Suplemen berhasil dihapus", "success");
+      fetchSuplemens();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Gagal menghapus data!", "error");
+    }
   };
 
   return (
     <AdminLayout>
-      <div className="p-6 text-gray-800">
-        {/* Header */}
+      <div className="p-1 text-gray-800">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Manajemen Suplemen
-            </h1>
+            <h1 className="text-2xl font-bold">Manajemen Suplemen</h1>
             <p className="text-gray-600">Kelola data suplemen dalam sistem</p>
           </div>
+
           {!showForm && (
             <button
-              onClick={openForm}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition duration-200"
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
             >
-              <i className="fas fa-plus"></i>
-              <span>Tambah Suplemen</span>
+              + Tambah Suplemen
             </button>
           )}
         </div>
@@ -357,10 +286,7 @@ const Suplemen = () => {
               <h2 className="text-xl font-semibold text-gray-900">
                 {editMode ? "Edit Suplemen" : "Tambah Suplemen Baru"}
               </h2>
-              <button
-                onClick={closeForm}
-                className="text-gray-500 hover:text-gray-700 flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md"
-              >
+              <button className="text-gray-500 hover:text-gray-700 flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md">
                 <i className="fas fa-times"></i>
                 <span>Batal</span>
               </button>
@@ -398,7 +324,7 @@ const Suplemen = () => {
                       <option value="">Pilih Kategori</option>
                       {kategoris.map((kategori) => (
                         <option key={kategori.id} value={kategori.id}>
-                          {kategori.nama_kategori}
+                          {kategori.nama}
                         </option>
                       ))}
                     </select>
@@ -508,13 +434,11 @@ const Suplemen = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Deskripsi
                 </label>
-                <textarea
-                  name="deskripsi"
+                <RichText
                   value={formData.deskripsi}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Deskripsi lengkap tentang suplemen"
+                  onChange={(content) =>
+                    setFormData((prev) => ({ ...prev, deskripsi: content }))
+                  }
                 />
               </div>
 
@@ -522,13 +446,12 @@ const Suplemen = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Manfaat
                 </label>
-                <textarea
-                  name="manfaat"
+
+                <RichText
                   value={formData.manfaat}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Manfaat dan kegunaan suplemen"
+                  onChange={(content) =>
+                    setFormData((prev) => ({ ...prev, manfaat: content }))
+                  }
                 />
               </div>
 
@@ -842,6 +765,65 @@ const Suplemen = () => {
               </div>
             </div>
 
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+              <div className="mb-4 mt-4">
+                <div className="flex justify-center px-4">
+                  <div className="relative w-full">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Cari nama obat..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        <svg
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Search Results Info */}
+                {searchTerm && (
+                  <div className="ml-4 mt-2 text-sm text-gray-600">
+                    Menampilkan hasil pencarian untuk:{" "}
+                    <span className="font-medium">"{searchTerm}"</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Table */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -864,7 +846,7 @@ const Suplemen = () => {
                           No
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nama Suplemen
+                          Suplemen
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Kategori
@@ -880,6 +862,7 @@ const Suplemen = () => {
                         </th>
                       </tr>
                     </thead>
+
                     <tbody className="bg-white divide-y divide-gray-200">
                       {suplemens.length === 0 ? (
                         <tr>
@@ -891,12 +874,20 @@ const Suplemen = () => {
                           </td>
                         </tr>
                       ) : (
-                        suplemens.map((suplemen, index) => (
+                        filteredSuplemens.map((suplemen, index) => (
                           <tr key={suplemen.id} className="hover:bg-gray-50">
+                            {/* Nomor */}
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {index + 1}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+
+                            {/* Nama + Gambar + Deskripsi */}
+                            <td className="px-6 py-4 flex items-center space-x-3">
+                              <img
+                                src={suplemen.gambar_url}
+                                alt={suplemen.nama}
+                                className="h-24 w-24 object-cover rounded-lg border"
+                              />
                               <div>
                                 <div className="text-sm font-medium text-gray-900">
                                   {suplemen.nama}
@@ -909,12 +900,16 @@ const Suplemen = () => {
                                 </div>
                               </div>
                             </td>
+
+                            {/* Kategori */}
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {suplemen.kategori?.nama_kategori ||
+                                {suplemen.kategori?.nama ||
                                   "Tidak ada kategori"}
                               </span>
                             </td>
+
+                            {/* Halal */}
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
                                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -928,9 +923,13 @@ const Suplemen = () => {
                                 {suplemen.status_halal}
                               </span>
                             </td>
+
+                            {/* Nomor Registrasi */}
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {suplemen.nomor_registrasi || "-"}
                             </td>
+
+                            {/* Aksi */}
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
                                 <button
@@ -940,6 +939,7 @@ const Suplemen = () => {
                                   <i className="fas fa-edit"></i>
                                   <span>Edit</span>
                                 </button>
+
                                 <button
                                   onClick={() => handleDelete(suplemen.id)}
                                   className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center space-x-1 text-xs"
@@ -956,6 +956,30 @@ const Suplemen = () => {
                   </table>
                 </div>
               )}
+
+              <div className="flex justify-center mt-6">
+                <div className="flex space-x-2 p-3 bg-white shadow-md rounded-lg">
+                  {pagination?.links?.map((link, i) => (
+                    <button
+                      key={i}
+                      disabled={!link.url}
+                      onClick={() => {
+                        const page = new URL(link.url).searchParams.get("page");
+                        fetchSuplemens(page);
+                      }}
+                      className={`px-4 py-2 border rounded-lg transition-all
+                        ${
+                          link.active
+                            ? "bg-blue-600 text-white font-semibold"
+                            : "bg-gray-100 hover:bg-gray-200"
+                        }
+                        ${!link.url ? "opacity-50 cursor-not-allowed" : ""}
+                      `}
+                      dangerouslySetInnerHTML={{ __html: link.label }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}

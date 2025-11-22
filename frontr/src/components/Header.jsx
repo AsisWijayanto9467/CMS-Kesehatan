@@ -17,6 +17,8 @@ const Header = ({ onMenuToggle }) => {
   const {logout} = useAuth();
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+
   const handleLogout = async() => {
     const result = await Swal.fire({
       title: 'Keluar dari akun?',
@@ -177,7 +179,7 @@ const Header = ({ onMenuToggle }) => {
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                 <i className="fas fa-user text-white text-sm"></i>
               </div>
-              <span className="text-gray-700 hidden md:inline">Alexander Pierce</span>
+              <span className="text-gray-700 hidden md:inline">{user?.name || "User"}</span>
               <i className="fas fa-caret-down text-gray-500 hidden md:inline"></i>
             </button>
             <div 

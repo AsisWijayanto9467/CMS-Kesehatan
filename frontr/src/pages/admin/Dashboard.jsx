@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components';
 import Swal from 'sweetalert2';
+import api from '../../services/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -20,54 +21,76 @@ export default function AdminDashboard() {
 
   const [loading, setLoading] = useState(true);
 
-  // Data dummy untuk dashboard
-  const dummyData = {
-    obat: [
-      { id: 1, nama: 'Paracetamol 500mg', jenis_obat: 'bebas', created_at: '2024-01-15' },
-      { id: 2, nama: 'Amoxicillin 500mg', jenis_obat: 'keras', created_at: '2024-01-14' },
-      { id: 3, nama: 'Vitamin C 1000mg', jenis_obat: 'bebas', created_at: '2024-01-13' },
-      { id: 4, nama: 'Antasida DOEN', jenis_obat: 'bebas terbatas', created_at: '2024-01-12' },
-    ],
-    penyakit: [
-      { id: 1, nama: 'Influenza', tingkat_keparahan: 'Ringan', created_at: '2024-01-15' },
-      { id: 2, nama: 'Hipertensi', tingkat_keparahan: 'Sedang', created_at: '2024-01-14' },
-      { id: 3, nama: 'Diabetes Mellitus', tingkat_keparahan: 'Berat', created_at: '2024-01-13' },
-    ],
-    suplemen: [
-      { id: 1, nama: 'Vitamin C 1000mg', status_halal: 'halal', created_at: '2024-01-15' },
-      { id: 2, nama: 'Zinc Supplement', status_halal: 'halal', created_at: '2024-01-14' },
-      { id: 3, nama: 'Probiotic Capsule', status_halal: 'tidak diketahui', created_at: '2024-01-13' },
-      { id: 4, nama: 'Omega-3 Fish Oil', status_halal: 'tidak halal', created_at: '2024-01-12' },
-    ]
-  };
-
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = () => {
+  const fetchDashboardData = async () => {
     setLoading(true);
-    
-    // Simulasi API call
-    setTimeout(() => {
-      const statsData = {
-        totalObat: dummyData.obat.length,
-        totalPenyakit: dummyData.penyakit.length,
-        totalSuplemen: dummyData.suplemen.length,
-        obatBebas: dummyData.obat.filter(o => o.jenis_obat === 'bebas').length,
-        obatKeras: dummyData.obat.filter(o => o.jenis_obat === 'keras').length,
-        penyakitMenular: 1, // Asumsi dari data dummy
-        penyakitKronis: 2, // Asumsi dari data dummy
-        suplemenHalal: dummyData.suplemen.filter(s => s.status_halal === 'halal').length,
-        suplemenVitamin: 2, // Asumsi dari data dummy
-        recentObat: dummyData.obat.slice(0, 3),
-        recentPenyakit: dummyData.penyakit.slice(0, 3),
-        recentSuplemen: dummyData.suplemen.slice(0, 3)
+    try {
+      // Panggil semua endpoint data yang diperlukan secara paralel
+      const [resObat, resPenyakit, resSuplemen] = await Promise.all([
+        api.get('/all-obat'),
+        api.get('/all-penyakit'),
+        api.get('/all-suplemen'),
+      ]);
+
+      const extractData = (res) => {
+        if (Array.isArray(res.data)) return res.data;
+        if (Array.isArray(res.data.data)) return res.data.data;
+        if (res.data.data?.data) return res.data.data.data;
+        return [];
       };
-      
-      setStats(statsData);
+
+      const obatData = extractData(resObat);
+      const penyakitData = extractData(resPenyakit);
+      const suplemenData = extractData(resSuplemen);
+
+
+      // Hitung statistik obat
+      const obatBebasCount = obatData.filter(o => o.jenis_obat === 'bebas').length;
+      const obatKerasCount = obatData.filter(o => o.jenis_obat === 'keras').length;
+
+      // Hitung penyakit menular dan kronis (asumsi dari properti kategori atau nama)
+      // Kamu bisa sesuaikan filter ini sesuai struktur data sebenarnya
+      const penyakitMenularCount = penyakitData.filter(p => p.jenis_penularan && p.jenis_penularan !== '').length;
+      const penyakitKronisCount = penyakitData.filter(p => p.tingkat_keparahan === 'Berat' || p.tingkat_keparahan === 'Kronis').length;
+
+      // Hitung suplemen halal dan vitamin
+      const suplemenHalalCount = suplemenData.filter(s => s.status_halal === 'halal').length;
+      const suplemenVitaminCount = suplemenData.filter(s => s.suplemen && s.suplemen.toLowerCase().includes('vitamin')).length;
+
+      // Ambil 3 terbaru berdasarkan created_at, urut descending
+      const sortByDateDesc = (a, b) => new Date(b.created_at) - new Date(a.created_at);
+      const recentObat = [...obatData].sort(sortByDateDesc).slice(0, 3);
+      const recentPenyakit = [...penyakitData].sort(sortByDateDesc).slice(0, 3);
+      const recentSuplemen = [...suplemenData].sort(sortByDateDesc).slice(0, 3);
+
+      setStats({
+        totalObat: obatData.length,
+        totalPenyakit: penyakitData.length,
+        totalSuplemen: suplemenData.length,
+        obatBebas: obatBebasCount,
+        obatKeras: obatKerasCount,
+        penyakitMenular: penyakitMenularCount,
+        penyakitKronis: penyakitKronisCount,
+        suplemenHalal: suplemenHalalCount,
+        suplemenVitamin: suplemenVitaminCount,
+        recentObat,
+        recentPenyakit,
+        recentSuplemen
+      });
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Gagal mengambil data dashboard, silakan coba lagi.'
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const StatCard = ({ title, value, icon, color, description }) => (
@@ -118,7 +141,13 @@ export default function AdminDashboard() {
                   </p>
                 </div>
               </div>
-              <span className="text-xs text-gray-400">{item.created_at}</span>
+              <span className="text-xs text-gray-400">
+                {new Date(item.created_at).toLocaleDateString('id-ID', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
             </div>
           ))
         )}
@@ -179,6 +208,22 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
+
+  const ErrorContactCard = () => (
+    <div className="bg-gradient-to-br from-red-400 to-red-500 rounded-lg shadow-sm p-6 text-white">
+      <h3 className="text-lg font-semibold mb-3 flex items-center space-x-2">
+        <i className="fas fa-exclamation-triangle"></i>
+        <span>Perhatian</span>
+      </h3>
+      <div className="space-y-2 text-sm">
+        <p>• Jika terjadi hal yang salah,</p>
+        <p>• Silakan hubungi admin terkait segera.</p>
+        <p>• Pastikan untuk menyimpan bukti error jika ada.</p>
+        <p>• Kami akan segera membantu Anda.</p>
+      </div>
+    </div>
+  );
+
 
   return (
     <AdminLayout>
@@ -292,31 +337,7 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <QuickActionCard />
             <HealthTipCard />
-            
-            {/* System Status */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <i className="fas fa-server text-gray-500"></i>
-                <span>System Status</span>
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Database</span>
-                  <span className="flex items-center space-x-1 text-green-600">
-                    <i className="fas fa-check-circle"></i>
-                    <span className="text-sm">Online</span>
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Storage</span>
-                  <span className="text-sm text-gray-600">1.2 GB / 5 GB</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Last Backup</span>
-                  <span className="text-sm text-gray-600">2 hours ago</span>
-                </div>
-              </div>
-            </div>
+            <ErrorContactCard /> 
           </div>
         </div>
 

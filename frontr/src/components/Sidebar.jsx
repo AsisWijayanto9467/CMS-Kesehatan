@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { menuItems } from "../config/menuConfig";
+import useAuth from "../hooks/useAuth";
 
 const Sidebar = ({ isExpanded, isMobileOpen, onClose, onToggle, isMobile }) => {
   const [openSubmenus, setOpenSubmenus] = useState({});
@@ -18,6 +19,8 @@ const Sidebar = ({ isExpanded, isMobileOpen, onClose, onToggle, isMobile }) => {
       [key]: !prev[key],
     }));
   };
+
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!hasInitialized) {
@@ -122,8 +125,8 @@ const Sidebar = ({ isExpanded, isMobileOpen, onClose, onToggle, isMobile }) => {
               isMobile || isExpanded ? "block" : "hidden"
             }`}
           >
-            <p className="font-semibold truncate">Alexander Pierce</p>
-            <p className="text-xs text-blue-200">Online</p>
+            <p className="font-semibold truncate">{user?.name || "User"}</p>
+            <p className="text-xs text-blue-200">{user?.email || "No email"}</p>  
           </div>
         </div>
 

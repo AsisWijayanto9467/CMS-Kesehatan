@@ -14,6 +14,12 @@ class ObatController extends Controller
      */
     public function index()
     {
+        $obats = Obat::with(['kategori', 'dosis'])->paginate(5);
+        return response()->json($obats, 200);
+    }
+
+    public function all()
+    {
         $obats = Obat::with(['kategori', 'dosis'])->get();
         return response()->json($obats, 200);
     }
@@ -23,10 +29,16 @@ class ObatController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->filled('dosis')) {
+            $request->merge([
+                'dosis' => json_decode($request->dosis, true)
+            ]);
+        }
+        
         $request->validate([
             'nama' => 'required|string|max:255',
             'kategori_id' => 'nullable|exists:kategori_obat,id',
-            'jenis_obat' => 'required|in:bebas, bebas terbatas,keras',
+            'jenis_obat' => 'required|in:bebas,bebas terbatas,keras',
             'deskripsi' => 'nullable|string',
             'efek_samping' => 'nullable|string',
             'nama_produsen_importir' => 'nullable|string|max:255',
@@ -96,6 +108,13 @@ class ObatController extends Controller
     {
         $obat = Obat::findOrFail($id);
 
+        // UBAH dosis JSON menjadi array
+        if ($request->filled('dosis')) {
+            $request->merge([
+                'dosis' => json_decode($request->dosis, true)
+            ]);
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'kategori_id' => 'nullable|exists:kategori_obat,id',
@@ -119,12 +138,12 @@ class ObatController extends Controller
         ]);
 
         if($request->hasFile('gambar')) {
-            if($obat->gambar && file_exists(storage_path('app/public'. $obat->gambar))) {
+            if($obat->gambar && file_exists(storage_path('app/public/' . $obat->gambar))) {
                 unlink(storage_path('app/public/' . $obat->gambar));
-
-                $gambarPath = $request->file('gambar')->store('obat', 'public');
-                $obat->gambar = $gambarPath;
             }
+
+            $gambarPath = $request->file('gambar')->store('obat', 'public');
+            $obat->gambar = $gambarPath;
         }
 
         $obat->update($request->except('gambar'));

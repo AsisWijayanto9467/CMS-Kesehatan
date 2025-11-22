@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthCare - Solusi Kesehatan Terlengkap</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/lucide@0.294.0/dist/lucide.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <div class="logo-icon">🩺</div>
+                    <span class="logo-text">HealthCare</span>
+                </a>
+
+                <nav class="nav">
+                    <a href="#home" class="nav-link nav-link-active">Beranda</a>
+                    <a href="#diseases" class="nav-link">Penyakit</a>
+                    <a href="#medicines" class="nav-link">Obat</a>
+                    <a href="#supplements" class="nav-link">Suplemen</a>
+                    <a href="#articles" class="nav-link">Artikel</a>
+                </nav>
+
+                <div class="header-actions">
+                    <div class="search-container">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" placeholder="Cari penyakit, obat, atau artikel..." class="search-input">
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="icon-btn">
+                            <i data-lucide="bell"></i>
+                        </button>
+                        <button class="icon-btn">
+                            <i data-lucide="user"></i>
+                        </button>
+                    </div>
+
+                    <button class="mobile-menu-btn">
+                        <i data-lucide="menu"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">
+                            Solusi Kesehatan
+                            <span class="text-primary"> Terlengkap</span>
+                            untuk Anda
+                        </h1>
+                        <p class="hero-description">
+                            Temukan informasi terpercaya tentang penyakit, obat-obatan, 
+                            dan suplemen kesehatan. Konsultasi kesehatan menjadi lebih mudah 
+                            dan terpercaya.
+                        </p>
+                        <div class="hero-actions">
+                            <a href="#diseases" class="btn btn-primary">
+                                Jelajahi Sekarang
+                                <i data-lucide="arrow-right"></i>
+                            </a>
+                            <a href="#articles" class="btn btn-outline">
+                                Baca Artikel
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-image">
+                        <div class="hero-graphic">
+                            <div class="graphic-element graphic-1"></div>
+                            <div class="graphic-element graphic-2"></div>
+                            <div class="graphic-element graphic-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i data-lucide="shield"></i>
+                        </div>
+                        <h3 class="feature-title">Informasi Penyakit</h3>
+                        <p class="feature-description">Pelajari tentang berbagai penyakit dan cara pencegahannya</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i data-lucide="pill"></i>
+                        </div>
+                        <h3 class="feature-title">Daftar Obat</h3>
+                        <p class="feature-description">Temukan informasi lengkap tentang obat-obatan</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i data-lucide="heart"></i>
+                        </div>
+                        <h3 class="feature-title">Suplemen Kesehatan</h3>
+                        <p class="feature-description">Suplemen pendukung untuk kesehatan optimal</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Diseases Section -->
+        <section id="diseases" class="disease-section section">
+            <div class="container">
+                <h2 class="section-title">Daftar Penyakit</h2>
+                <p class="section-subtitle">
+                    Informasi lengkap tentang berbagai penyakit dan cara penanganannya
+                </p>
+
+                <!-- Search and Filter -->
+                <div class="search-filter-section">
+                    <div class="search-box">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" placeholder="Cari penyakit..." class="search-input" id="diseaseSearch">
+                    </div>
+
+                    <div class="filter-section">
+                        <i data-lucide="filter"></i>
+                        <select class="category-filter" id="diseaseCategory">
+                            <option value="all">Semua</option>
+                            <option value="Penyakit Kronis">Penyakit Kronis</option>
+                            <option value="Penyakit Jantung">Penyakit Jantung</option>
+                            <option value="Infeksi">Infeksi</option>
+                            <option value="Pernapasan">Pernapasan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Results Info -->
+                <div class="results-info">
+                    <p id="diseaseResultsCount">Menampilkan 6 dari 6 penyakit</p>
+                </div>
+
+                <!-- Disease Grid -->
+                <div class="disease-grid" id="diseaseGrid">
+                    <!-- Disease cards will be generated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Medicines Section -->
+        <section id="medicines" class="medicine-section section">
+            <div class="container">
+                <h2 class="section-title">Daftar Obat</h2>
+                <p class="section-subtitle">
+                    Informasi lengkap tentang berbagai obat dan penggunaannya
+                </p>
+
+                <!-- Medicine Grid -->
+                <div class="medicine-grid" id="medicineGrid">
+                    <!-- Medicine cards will be generated by JavaScript -->
+                </div>
+
+                <div class="view-all-container">
+                    <button class="btn btn-outline" id="loadMoreMedicines">
+                        Muat Lebih Banyak
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Supplements Section -->
+        <section id="supplements" class="supplement-section section">
+            <div class="container">
+                <h2 class="section-title">Suplemen Kesehatan</h2>
+                <p class="section-subtitle">
+                    Suplemen pendukung untuk menjaga kesehatan optimal
+                </p>
+
+                <!-- Supplement Grid -->
+                <div class="supplement-grid" id="supplementGrid">
+                    <!-- Supplement cards will be generated by JavaScript -->
+                </div>
+
+                <div class="view-all-container">
+                    <button class="btn btn-outline" id="loadMoreSupplements">
+                        Muat Lebih Banyak
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Health Tips Section -->
+        <section id="articles" class="health-tips section">
+            <div class="container">
+                <h2 class="section-title">Tips Kesehatan Terbaru</h2>
+                <p class="section-subtitle">
+                    Informasi dan tips untuk menjaga kesehatan sehari-hari
+                </p>
+                
+                <div class="tips-grid">
+                    <div class="tip-card card">
+                        <div class="tip-content">
+                            <h3>Pola Makan Sehat</h3>
+                            <p>Pelajari cara menjaga pola makan yang sehat dan seimbang untuk tubuh yang optimal.</p>
+                            <button class="btn btn-primary">Baca Selengkapnya</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card card">
+                        <div class="tip-content">
+                            <h3>Olahraga Rutin</h3>
+                            <p>Tips olahraga yang tepat sesuai dengan kondisi tubuh dan usia.</p>
+                            <button class="btn btn-primary">Baca Selengkapnya</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card card">
+                        <div class="tip-content">
+                            <h3>Manajemen Stres</h3>
+                            <p>Teknik efektif untuk mengelola stres dan menjaga kesehatan mental.</p>
+                            <button class="btn btn-primary">Baca Selengkapnya</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-icon">🩺</div>
+                        <span class="logo-text">HealthCare</span>
+                    </div>
+                    <p class="footer-description">
+                        Platform kesehatan terpercaya yang menyediakan informasi 
+                        lengkap tentang penyakit, obat-obatan, dan suplemen kesehatan.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <i data-lucide="facebook"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i data-lucide="twitter"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i data-lucide="instagram"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i data-lucide="mail"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3 class="footer-title">Menu</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Beranda</a></li>
+                        <li><a href="#diseases">Penyakit</a></li>
+                        <li><a href="#medicines">Obat</a></li>
+                        <li><a href="#supplements">Suplemen</a></li>
+                        <li><a href="#articles">Artikel</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3 class="footer-title">Layanan</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Konsultasi Dokter</a></li>
+                        <li><a href="#">Cek Lab</a></li>
+                        <li><a href="#">Artikel Kesehatan</a></li>
+                        <li><a href="#">Tips Sehat</a></li>
+                        <li><a href="#">Forum Diskusi</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3 class="footer-title">Kontak</h3>
+                    <div class="contact-info">
+                        <p>📞 +62 21 1234 5678</p>
+                        <p>✉️ hello@healthcare.com</p>
+                        <p>📍 Jakarta, Indonesia</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 HealthCare. All rights reserved.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.js"></script>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

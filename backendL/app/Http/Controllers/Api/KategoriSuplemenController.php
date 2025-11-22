@@ -43,6 +43,7 @@ class KategoriSuplemenController extends Controller
 
         $kategori = KategoriSuplemen::create([
             'nama' => $request->nama,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([
@@ -101,6 +102,7 @@ class KategoriSuplemenController extends Controller
 
         $kategori->update([
             'nama' => $request->nama,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([
